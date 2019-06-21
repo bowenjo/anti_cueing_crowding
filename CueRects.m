@@ -1,43 +1,42 @@
 classdef CueRects < TrialModule
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    % CueRects - Class for running an attention anti-cueing experiments
     
     properties
         % design information
-        baseRect % the base recangle
-        xPos % x-coordinate positions of the boxes in pixels
-        yPos % y-coordinate positions of the boxes in pixels
-        nRects % number of rectangles
+        baseRect % array - size(1,4) - the base rectangles
+        xPos % int - x-coordinate positions of the boxes in pixels
+        yPos % int - y-coordinate positions of the boxes in pixels
+        nRects % int - number of rectangles
         rects % the rectangle bounding box coordinates
        
         % cue information
-        cueLum % cued rectangle luminance value
-        nonCueLum % non-cued rectangle luminance value
-        cueWidth % cued rectangle outline width in pixels
-        nonCueWidth % non-cued rectangle outline width in pixels
-        postCuedRect % rectangle indices to present the stimuli folowing a cue 
+        cueLum % float - cued rectangle luminance value
+        nonCueLum % float - non-cued rectangle luminance value
+        cueWidth % int - cued rectangle outline width in pixels
+        nonCueWidth % int - non-cued rectangle outline width in pixels
+        postCuedRect % array - size(1,nRects) - rectangle indices to present the stimuli following a cue 
         
-        %data randomization info
-        cuedRectProb % probablity rectangle will be cued
-        cueValidProb % probability cue will be valid
-        spacingProb % probability of element in spacingChoice
-        orientProb % probability of element in orientChoice
+        % data randomization info
+        cuedRectProb % array - size(1,nRects) - probablity rectangle will be cued
+        cueValidProb % float (0,1) - probability cue will be valid
+        spacingProb % array - size(spacingChoice) - probability of element in spacingChoice
+        orientProb % array - size(orientChoice) - probability of element in orientChoice
         
         % data choices
-        spacingChoice % the spacing choices
-        orientChoice % the target and flanker orientation choices
+        spacingChoice % array - size(1, n) - the spacing choices
+        orientChoice % array - size(1, k) - the target and flanker orientation choices
         
         % grating parameters
-        spatialFrequency
-        diameter
-        contrast
+        spatialFrequency % float - spatial frequency of disparity grating
+        diameter % float - diameter of disparity grating 
+        contrast % float - contrast of disparity grating
 
         % timing information
         ifi % inter-frame interval time
-        isiFrames % number frames of fixation before cue 
-        cueFrames % number frames during cue
-        soaFrames % number frames after the cue 
-        stimFrames % number frames during stimulus
+        isiFrames % int - number frames of fixation before cue 
+        cueFrames % int - number frames during cue
+        soaFrames % int - number frames after the cue 
+        stimFrames % int - number frames during stimulus
     end
     
     methods
@@ -184,7 +183,7 @@ classdef CueRects < TrialModule
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
-            % Fixation interval
+            % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation();
                 self.cue_rect(0);
@@ -196,7 +195,7 @@ classdef CueRects < TrialModule
                 self.cue_rect(cueIndex);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
-            % Stimulus Onset Asynchrony
+            % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation();
                 self.cue_rect(0);
