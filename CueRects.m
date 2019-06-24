@@ -37,6 +37,11 @@ classdef CueRects < TrialModule
         cueFrames % int - number frames during cue
         soaFrames % int - number frames after the cue 
         stimFrames % int - number frames during stimulus
+        
+        % response information
+        leftKey
+        rightKey
+        escapeKey
     end
     
     methods
@@ -90,6 +95,12 @@ classdef CueRects < TrialModule
             self.cueFrames = round(cueTime / self.ifi);
             self.soaFrames = round(soaTime / self.ifi);
             self.stimFrames = round(stimTime / self.ifi);
+            
+            % response info
+            self.escapeKey = KbName('ESCAPE');
+            self.leftKey = KbName('LeftArrow');
+            self.rightKey = KbName('RightArrow');
+            
         end
         
         function set_exp_design(self, nTrials) 
@@ -179,6 +190,26 @@ classdef CueRects < TrialModule
             end
         end
         
+        function [response] = get_key_response(self)
+            rspToBeMade = true;
+            while rspToBeMade
+                [keyIsDown, secs, keyCode] = KbCheck;
+                if keyCode(self.leftKey)
+                    response = 0;
+                    rspToBeMade = false;
+                elseif keyCode(self.rightKey)
+                    response = 1;
+                    rspToBeMade = false;
+                elseif keyCode(self.escapeKey)
+                    ShowCursor;
+                    sca;
+                    return
+                end
+            end
+        end
+   
+    
+        
         function [] = forward(self, idx, vbl)
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
@@ -209,6 +240,10 @@ classdef CueRects < TrialModule
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
+            self.draw_fixation()
+            self.cue_rect(0)
+            Screen('Flip', self.window, vbl+self.ifi/2);
+            rsp = self.get_key_response()
         end  
     end
 end

@@ -72,8 +72,8 @@ sca;
 % Independent variables
 soaTime = 40/1000; % 40ms
 cueValidProb = .5; % probability the cue is valid
-spaceCh = [100, 80]; % define your spacing choices in pixels
-spaceProb = [1, 0]; % decide the proportion of each choice (just doing one spacing for example purposes)
+spaceCh = [100, 200]; % define your spacing choices in pixels
+spaceProb = [.5, .5]; % decide the proportion of each choice (just doing one spacing for example purposes)
 
 % Make the widow 
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);

@@ -7,6 +7,7 @@ classdef TrialModule
         xCenter
         yCenter
         expDesign
+        results
     end
     
     methods
@@ -16,6 +17,7 @@ classdef TrialModule
             self.window = window;
             [self.xCenter, self.yCenter] = RectCenter(windowRect);
             self.expDesign = containers.Map();
+            self.results = containers.Map();
         end
         
         function [] = draw_fixation(self)
