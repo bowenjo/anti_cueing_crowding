@@ -1,13 +1,17 @@
 classdef TrialModule < handle
-    %MODULE Summary of this class goes here
-    %   Detailed explanation goes here
+    %TiralModule: Base class for running a single experiment block
+    %   Methods: 
+    %   1) draw_fixation
+    %       draws a fixation cross at the center of the scree
+    %   2) run
+    %       runs the experiment block for a designated amount of trials 
     
     properties
-        window  
-        xCenter
-        yCenter
-        expDesign
-        results
+        window % the ptb screen object
+        xCenter % the x-coordinate of the center point
+        yCenter % the y-coordinate of the center point
+        expDesign % the experiment design container
+        results % the results matrix
     end
     
     methods
@@ -25,10 +29,9 @@ classdef TrialModule < handle
         end
         
         function [] = run(self, nTrials)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
             % set the experimental design
             self.set_exp_design(nTrials);
+            % set the results matrix
             self.set_results_matrix(nTrials);
             % run the design for each trial
             vbl = Screen('Flip', self.window);

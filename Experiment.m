@@ -1,10 +1,15 @@
 classdef Experiment
-    %EXPERIMENT Module for running experiments
-    %   Detailed explanation goes here
+    %Experiment: Module for running experiments
+    %   Methods:
+    %   1) append_block
+    %       appends a block module for running a designated amount of
+    %       trials
+    %   2) run
+    %       runs the full experiment (all appended blocks)
     
     properties
-    blocks % blocks of the experiment
-    nTrialTracker
+    blocks % containers.Map() - blocks of the experiment
+    nTrialTracker % containers.Map() - the number of trials in each block
     end
     
     methods
@@ -15,7 +20,10 @@ classdef Experiment
         
         function [] = append_block(self, index, Module, nTrials)
             %append_block Appends an experiment block to the full design
-            %   Detailed explanation goes here
+            %   index - str - the container key
+            %   Module - MatLab class - the block module containing all the
+            %       design information for the block of trials
+            %   nTrials - int - the number of trials to run the block
             self.blocks(index) = Module;
             self.nTrialTracker(index) = nTrials;
         end

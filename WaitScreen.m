@@ -1,17 +1,19 @@
 classdef WaitScreen
-    %WaitScreen Summary of this class goes here
-    %   Detailed explanation goes here
+    % WaitScreen: Class to schedule wait/break screens between 
+    % experiment blocks
+    %   Methods:
+    %   1) run
+    %       displays the waiting screen until designated key is pressed
     
     properties
-        window
-        displayText
-        textSize
+        window % the ptb screen object
+        displayText % The text string to be displayed
+        textSize % the size of the text
     end
     
     methods
         function self = WaitScreen(window, displayText, textSize)
             %WaitScreen Construct an instance of this class
-            %   Detailed explanation goes here
             self.window = window;
             self.displayText = displayText;
             self.textSize = textSize;

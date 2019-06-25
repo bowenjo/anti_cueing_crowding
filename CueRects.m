@@ -1,5 +1,5 @@
 classdef CueRects < TrialModule
-    % CueRects - Class for running an attention anti-cueing experiments
+    % CueRects: Class for running an attention anti-cueing experiments
     
     properties
         % design information
@@ -39,9 +39,9 @@ classdef CueRects < TrialModule
         stimFrames % int - number frames during stimulus
         
         % response information
-        leftKey
-        rightKey
-        escapeKey
+        leftKey % the left arrow keycode
+        rightKey % the right arrow keycode 
+        escapeKey % escape key code
     end
     
     methods
