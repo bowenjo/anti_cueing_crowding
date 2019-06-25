@@ -66,10 +66,10 @@ Block1 = CueRects(window,windowRect, baseRect, squareXpos, squareYpos, cuedGrey,
     spatialFrequency, diameter, contrast, ...
     isiTime, cueTime, soaTime, stimTime);
 
-Block1.run(10) % run 5 example trials from the block
+% Block1.run(10) % run 5 example trials from the block
 sca;
-Block1.results
-Block1.expDesign('T_orient')
+% Block1.results
+% Block1.expDesign('T_orient')
 
 %% Example Experiment 2: Non-Informative/ short SOA
 % Independent variables
@@ -88,7 +88,7 @@ Block2 = CueRects(window, windowRect, baseRect, squareXpos, squareYpos, cuedGrey
     spatialFrequency, diameter, contrast, ...
     isiTime, cueTime, soaTime, stimTime);
 
-Block2.run(5) % run 5 example trials from the block
+% Block2.run(5) % run 5 example trials from the block
 sca;
 
 %% Build full experiments
@@ -99,9 +99,14 @@ sca;
 
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 Exp = Experiment();
+
+% Build a waitscreen
+continueMessage = 'Press the Space Bar to continue';
+Wait1 = WaitScreen(window, continueMessage, 70);
 % append blocks and corresponding number of trials
 Exp.append_block('1', Block1, 10) % Block 1: Informative/Long SOA for 10 trials
-Exp.append_block('2', Block2, 10) % Block 2: Non-informative/ Short SOA for 10 trials
+Exp.append_block('2', Wait1, 0)
+Exp.append_block('3', Block2, 10)  % Block 2: Non-informative/ Short SOA for 10 trials
 Exp.run() % run all blocks
 
 sca;
