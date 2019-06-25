@@ -100,7 +100,6 @@ classdef CueRects < TrialModule
             self.escapeKey = KbName('ESCAPE');
             self.leftKey = KbName('LeftArrow');
             self.rightKey = KbName('RightArrow');
-            
         end
         
         function set_exp_design(self, nTrials) 
@@ -116,10 +115,15 @@ classdef CueRects < TrialModule
             self.expDesign('spacing') = random_sample(nTrials,...
                 self.spacingProb, self.spacingChoice); 
             % target and flanker orientations for each trial
-            for key =  ['T_orient', 'L_orient', 'R_orient'] 
-                self.expDesign(key) = random_sample(nTrials,...
+            for key =  {'T_orient', 'L_orient', 'R_orient'} 
+                self.expDesign(char(key)) = random_sample(nTrials,...
                     self.orientProb, self.orientChoice);
             end
+        end
+        
+        function set_results_matrix(self, nTrials)
+            nMetrics = 2; % response key and reaction time
+            self.results = zeros(nMetrics, nTrials);
         end
         
         function [cuedRect, postRect] = get_cue(self, idx)
@@ -141,8 +145,6 @@ classdef CueRects < TrialModule
         
         function [] = cue_rect(self, cuedRect)
             % highlights the cued rectangle with a different width and
-            % luminance value
-            
             % get the rectangle luminance and width info
             lums = repmat(self.nonCueLum, 3, self.nRects);
             lineWidths = repmat(self.nonCueWidth, 1, self.nRects);
@@ -167,10 +169,10 @@ classdef CueRects < TrialModule
         
         function [stimuli, dests] = make_stimuli(self, idx, rectIdx)
             % make the gratings textures
-            keys =  ['T_orient', 'L_orient', 'R_orient'];
+            keys =  {'T_orient', 'L_orient', 'R_orient'};
             trialOrientations = zeros(1, 3);
             for i = 1:3 
-                orientations = self.expDesign(keys(i));
+                orientations = self.expDesign(char(keys(i)));
                 trialOrientations(i) = orientations(idx);
             end
             stimuli = make_grating(self.window, trialOrientations,...
@@ -191,15 +193,16 @@ classdef CueRects < TrialModule
         end
         
         function [response] = get_key_response(self)
-            rspToBeMade = true;
-            while rspToBeMade
+            respToBeMade = true;
+            % wait for subject response
+            while respToBeMade
                 [keyIsDown, secs, keyCode] = KbCheck;
                 if keyCode(self.leftKey)
                     response = 0;
-                    rspToBeMade = false;
+                    respToBeMade = false;
                 elseif keyCode(self.rightKey)
                     response = 1;
-                    rspToBeMade = false;
+                    respToBeMade = false;
                 elseif keyCode(self.escapeKey)
                     ShowCursor;
                     sca;
@@ -207,10 +210,8 @@ classdef CueRects < TrialModule
                 end
             end
         end
-   
-    
         
-        function [] = forward(self, idx, vbl)
+        function [rsp] = forward(self, idx, vbl)
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
@@ -243,7 +244,9 @@ classdef CueRects < TrialModule
             self.draw_fixation()
             self.cue_rect(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
-            rsp = self.get_key_response()
+            rsp = self.get_key_response();
+            % append the resonse data
+            self.results(1, idx) = rsp;
         end  
     end
 end

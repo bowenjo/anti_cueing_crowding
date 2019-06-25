@@ -46,7 +46,8 @@ contrast = 1;
 
 
 %% Example Experiment 1: Informative/ long SOA
-% Independent variables
+% Independent variablesSCA
+
 soaTime = 600/1000; %600 ms
 cueValidProb = .8; % probability the cue is valid
 spaceCh = [100, 80]; % define your spacing choices in pixels
@@ -65,8 +66,10 @@ Block1 = CueRects(window,windowRect, baseRect, squareXpos, squareYpos, cuedGrey,
     spatialFrequency, diameter, contrast, ...
     isiTime, cueTime, soaTime, stimTime);
 
-Block1.run(5) % run 5 example trials from the block
+Block1.run(10) % run 5 example trials from the block
 sca;
+Block1.results
+Block1.expDesign('T_orient')
 
 %% Example Experiment 2: Non-Informative/ short SOA
 % Independent variables
@@ -112,4 +115,3 @@ sca;
 % 1) Still need to add code to obtain and measure subject responses.
 % 2) Need to add in instruction/break screens between blocks
 % 3) Need to add in eye-tracking stuff 
-
