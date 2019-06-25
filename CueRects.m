@@ -211,7 +211,7 @@ classdef CueRects < TrialModule
             end
         end
         
-        function [rsp] = forward(self, idx, vbl)
+        function forward(self, idx, vbl)
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
