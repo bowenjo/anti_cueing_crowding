@@ -19,14 +19,14 @@ classdef WaitScreen
             self.textSize = textSize;
         end
         
-        function run(self, nTrials)
+        function run(self, nTrials, name)
             wait = true;
             exitKey = KbName('space');
             while wait
-                Screen('TextSize', self.window, self.textSize)
+                Screen('TextSize', self.window, self.textSize);
                 DrawFormattedText(self.window, [self.displayText], ... 
                     'center', 'center', 1);
-                Screen('Flip', self.window)
+                Screen('Flip', self.window);
                 [keyIsDown, secs, keyCode] = KbCheck;
                 if keyCode(exitKey)
                     wait = false;
