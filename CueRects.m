@@ -68,7 +68,7 @@ classdef CueRects < TrialModule & CueRectsParams
         end
         
         function set_results_matrix(self, nTrials)
-            nMetrics = 2; % response key and reaction time
+            nMetrics = 3; % response key and reaction time
             self.results = zeros(nMetrics, nTrials);
         end
         
@@ -142,16 +142,17 @@ classdef CueRects < TrialModule & CueRectsParams
             end
         end
         
-        function [response] = get_key_response(self)
+        function [responseKey, responseTime] = get_key_response(self)
             respToBeMade = true;
+            timeStart = GetSecs;
             % wait for subject response
             while respToBeMade
                 [keyIsDown, secs, keyCode] = KbCheck;
                 if keyCode(self.leftKey)
-                    response = 0;
+                    responseKey = 0;
                     respToBeMade = false;
                 elseif keyCode(self.rightKey)
-                    response = 1;
+                    responseKey = 1;
                     respToBeMade = false;
                 elseif keyCode(self.escapeKey)
                     ShowCursor;
@@ -159,6 +160,7 @@ classdef CueRects < TrialModule & CueRectsParams
                     return
                 end
             end
+            responseTime = secs - timeStart;
         end
         
         function forward(self, idx, vbl, nTrials)
@@ -186,6 +188,7 @@ classdef CueRects < TrialModule & CueRectsParams
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
+            fix = checkFix(self.el, self.fixLoc);
             for i = 1:self.stimFrames
                 self.draw_fixation()
                 self.cue_rect(0)
@@ -196,9 +199,11 @@ classdef CueRects < TrialModule & CueRectsParams
             self.draw_fixation()
             self.cue_rect(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
-            rsp = self.get_key_response();
+            [rsp, rt] = self.get_key_response();
             % append the resonse data
             self.results(1, idx) = rsp;
+            self.results(2, idx) = rt;
+            self.results(3, idx) = fix;
         end  
     end
 end
