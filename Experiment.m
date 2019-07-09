@@ -34,7 +34,7 @@ classdef Experiment
                 key = blockKeys{i};
                 block = self.blocks(key);
                 nTrials = self.nTrialTracker(key);
-                block.run(nTrials);
+                block.run(nTrials, key);
             end
         end
     end
