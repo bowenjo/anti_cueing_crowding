@@ -67,5 +67,5 @@ function [gratings] = make_grating(window, orientations, thickness, diameter, ..
             michelsonContrast * sin(shift_x*x + shift_y*y+phase).* circularMaskMatrix);
         gratings(i) = Screen('MakeTexture', window, imageMatrix); 
     end
-    end
+end
 
