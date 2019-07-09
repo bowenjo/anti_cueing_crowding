@@ -128,8 +128,12 @@ classdef CueRects < TrialModule & CueRectsParams
             dests = zeros(3, 4);
             s = self.expDesign('spacing');
             dests(1,:) = self.get_destination(rectIdx, [0,0]); %target
-            dests(2,:) = self.get_destination(rectIdx, [s(idx),0]); %left flanker
-            dests(3,:) = self.get_destination(rectIdx, [-s(idx),0]); %right flanker
+            if s(idx) == 0
+                stimuli = stimuli(1); % just get the target for 0 spacing 
+            else
+                dests(2,:) = self.get_destination(rectIdx, [s(idx),0]); %left flanker
+                dests(3,:) = self.get_destination(rectIdx, [-s(idx),0]); %right flanker
+            end
         end
             
         function [] = place_stimuli(self, stimuli, dests)
