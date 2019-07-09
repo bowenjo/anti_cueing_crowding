@@ -82,9 +82,9 @@ iWait = WaitScreen(window, iMessage, 70);
 nWait = WaitScreen(window, nMessage, 70);   
 % append blocks and corresponding number of tri a ls 
 Exp.append_block('1', iWait, 0) 
-Exp.append_block('2', Block1, 2) % Block 1: Informative/Long SOA for 10 trials
+Exp.append_block('2', Block1, 10) % Block 1: Informative/Long SOA for 10 trials
 Exp.append_block('3', nWait, 0) 
-Exp.append_block('4', Block2, 2 )  % Block 2: Non-informative/ Short SOA  for 10 trials
+Exp.append_block('4', Block2, 10)  % Block 2: Non-informative/ Short SOA for 10 trials
 Exp.run() % run all blocks   
 sca; 
   
