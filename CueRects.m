@@ -1,21 +1,7 @@
-classdef CueRects < TrialModule
+classdef CueRects < TrialModule & CueRectsParams
     % CueRects: Class for running an attention anti-cueing experiments
     
     properties
-        % design information
-        baseRect % array - size(1,4) - the base rectangles
-        xPos % int - x-coordinate positions of the boxes in pixels
-        yPos % int - y-coordinate positions of the boxes in pixels
-        nRects % int - number of rectangles
-        rects % the rectangle bounding box coordinates
-       
-        % cue information
-        cueLum % float - cued rectangle luminance value
-        nonCueLum % float - non-cued rectangle luminance value
-        cueWidth % int - cued rectangle outline width in pixels
-        nonCueWidth % int - non-cued rectangle outline width in pixels
-        postCuedRect % array - size(1,nRects) - rectangle indices to present the stimuli following a cue 
-        
         % data randomization info
         cuedRectProb % array - size(1,nRects) - probablity rectangle will be cued
         cueValidProb % float (0,1) - probability cue will be valid
@@ -25,11 +11,6 @@ classdef CueRects < TrialModule
         % data choices
         spacingChoice % array - size(1, n) - the spacing choices
         orientChoice % array - size(1, k) - the target and flanker orientation choices
-        
-        % grating parameters
-        spatialFrequency % float - spatial frequency of disparity grating
-        diameter % float - diameter of disparity grating 
-        contrast % float - contrast of disparity grating
 
         % timing information
         ifi % inter-frame interval time
@@ -37,35 +18,17 @@ classdef CueRects < TrialModule
         cueFrames % int - number frames during cue
         soaFrames % int - number frames after the cue 
         stimFrames % int - number frames during stimulus
-        
-        % response information
-        leftKey % the left arrow keycode
-        rightKey % the right arrow keycode 
-        escapeKey % escape key code
+      
     end
     
     methods
-        function self = CueRects(window, windowRect, baseRect, xPos, yPos, ...
-                cueLum, nonCueLum, cueWidth, nonCueWidth, ...
-                postCuedRect, cuedRectProb, cueValidProb, ...
-                spacingProb, orientProb, spacingChoice, orientChoice,...
-                spatialFrequency, diameter, contrast,...
-                isiTime, cueTime, soaTime, stimTime)
+        function self = CueRects(window, windowRect, cuedRectProb, ...
+                cueValidProb, spacingProb, orientProb, spacingChoice, ...
+                orientChoice, isiTime, cueTime, soaTime, stimTime)
             
             %CueRects Construct an instance of this class
-            %   Detailed explanation goes here
             self = self@TrialModule(window, windowRect);
-            self.baseRect = baseRect;
-            self.xPos = xPos;
-            self.yPos = yPos;
-            self.nRects = length(xPos);
-            
-            % cue information
-            self.cueLum = cueLum;
-            self.nonCueLum = nonCueLum;
-            self.cueWidth = cueWidth;
-            self.nonCueWidth = nonCueWidth;
-            self.postCuedRect = postCuedRect;
+            self = self@CueRectsParams();
             
             % data randomization information
             self.cuedRectProb = cuedRectProb;
@@ -77,29 +40,12 @@ classdef CueRects < TrialModule
             self.spacingChoice = spacingChoice;
             self.orientChoice = orientChoice;
             
-            % Get the rects
-            self.rects = nan(4,self.nRects);
-            for i = 1:self.nRects
-                self.rects(:, i) = CenterRectOnPointd(self.baseRect,...
-                    self.xPos(i), self.yPos(i));
-            end  
-            
-            % grating information
-            self.spatialFrequency = spatialFrequency;
-            self.diameter = diameter;
-            self.contrast = contrast;
-            
             % timing information
             self.ifi = Screen('GetFlipInterval', window);
             self.isiFrames = round(isiTime / self.ifi);
             self.cueFrames = round(cueTime / self.ifi);
             self.soaFrames = round(soaTime / self.ifi);
             self.stimFrames = round(stimTime / self.ifi);
-            
-            % response info
-            self.escapeKey = KbName('ESCAPE');
-            self.leftKey = KbName('LeftArrow');
-            self.rightKey = KbName('RightArrow');
         end
         
         function set_exp_design(self, nTrials) 
@@ -211,10 +157,12 @@ classdef CueRects < TrialModule
             end
         end
         
-        function forward(self, idx, vbl)
+        function forward(self, idx, vbl, nTrials)
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
+            % Eyelink stuff
+            self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation();
