@@ -68,18 +68,17 @@ Block2 = CueRects(window,windowRect, cuedRectProb, cueValidProb, ...
 % parameters above and append them to the full experiment. This will
 % hopefully allow the design to be flexible if we want to change the
 % ordering of the blocks, the number of trials, the proportions, etc.
-Exp = Experiment();  
-
+Exp = Experiment();
 % Build a waitscreen    
 iMessage = 'Informative Block  \n \n press space bar to start';
-nMessage = 'Non-Informative Blcok \n \n press space bar to start'; 
+nMessage = 'Non-Informative Block \n \n press space bar to start'; 
 iWait = WaitScreen(window, iMessage, 70); 
 nWait = WaitScreen(window, nMessage, 70);   
-% append blocks and corresponding number of trials 
+% Append blocks and corresponding number of trials 
 Exp.append_block('1_wait', iWait, 0) 
 Exp.append_block('2_block', Block1, 5) % Block 1: Informative/Long SOA for 5 trials
 Exp.append_block('3_wait', nWait, 0) 
-Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/ Short SOA for 5 trials
+Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/Short SOA for 5 trials
 Exp.run() % run all blocks  
 results = Exp.save_run('test_save.mat');  
 sca; 
