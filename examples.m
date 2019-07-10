@@ -1,23 +1,25 @@
-%% Set up
-% Run the following cells one at a time to see the various examples of how
-% the block modules can be defined and how a entire experiment can be
+%----------
+% Set up
+%----------
+% Run the following script to see various examples of how
+% the block modules can be defined and how an entire experiment can be
 % created and run from a combination of modules.
 
-% Clear the workspace and the screen
+% Clear the workspace and the screen and set up
 sca; 
 close all;
 clearvars;
 PsychDefaultSetup(2);
 screens = Screen('Screens');
 screenNumber = max(screens);
-white = WhiteIndex(screenNumber);
-black = BlackIndex(screenNumber);  
-backgroundGrey = white / 2;
+backgroundGrey = WhiteIndex(screenNumber) /2;
 
 utilsPath = [pwd '/utils'];
 addpath(utilsPath)
 
-%% Fixed Params
+%-------------
+% Fixed Params
+%-------------
 % timing info
 isiTime = 1; % pre-cue time
 cueTime = 200/1000; % cue presentation time
@@ -28,69 +30,61 @@ cuedRectProb = [.5 .5]; % probability of cue location
 orientCh = [45 135];
 orientProb = [.5 .5];
 
+% open ptb window
+[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 
-%% Example Experiment 1: Informative/ long SOA
+%-----------------------------------------
+% Example Block 1: Informative/ long SOA
+%-----------------------------------------
 % Independent variables
 soaTime = 600/1000; %600 ms
 cueValidProb = .8; % probability the cue is valid
 spaceCh = [0, 100]; % define your spacing choices in pixels
 spaceProb = [1, 0]; % decide the proportion of each choice  
 
-% Make the widow and get the rectangle postions
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-
 % initialize the block of trials module with the parameters
 Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
     spaceProb, orientProb, spaceCh, orientCh, ...
     isiTime, cueTime, soaTime, stimTime);
 
-Block1.run(5, 'block_1') % run 5 example trials from the block
-sca;
-
-% Block1.results % result matrix (responseKeys, responseTimes, fixations)
-% Block1.expDesign('T_orient') % ground truth target orientation
-
-%% Example Experiment 2: Non-Informative/ short SOA
+%---------------------------------------------
+% Example Block 2: Non-Informative/ short SOA
+%---------------------------------------------
 % Independent variables
 soaTime = 40/1000; % 40ms
 cueValidProb = .5; % probability the cue is valid
 spaceCh = [0, 100]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
-% Make the widow 
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-
 % initialize the block of trials module
 Block2 = CueRects(window,windowRect, cuedRectProb, cueValidProb, ...
     spaceProb, orientProb, spaceCh, orientCh, ...
     isiTime, cueTime, soaTime, stimTime);
 
-Block2.run(5, 'block_2') % run 5 example trials from the block
-sca;
-
-%% Build full experiments
+%-------------------------
+% Build full experiments
+%-------------------------
 % You can define as many blocks as you want with all different
 % parameters above and append them to the full experiment. This will
 % hopefully allow the design to be flexible if we want to change the
 % ordering of the blocks, the number of trials, the proportions, etc.
+Exp = Experiment();  
 
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-Exp = Experiment();
-
-% Build a waitscreen  
+% Build a waitscreen    
 iMessage = 'Informative Block  \n \n press space bar to start';
 nMessage = 'Non-Informative Blcok \n \n press space bar to start'; 
 iWait = WaitScreen(window, iMessage, 70); 
 nWait = WaitScreen(window, nMessage, 70);   
 % append blocks and corresponding number of trials 
 Exp.append_block('1_wait', iWait, 0) 
-Exp.append_block('2_block', Block1, 2) % Block 1: Informative/Long SOA for 10 trials
+Exp.append_block('2_block', Block1, 5) % Block 1: Informative/Long SOA for 5 trials
 Exp.append_block('3_wait', nWait, 0) 
-Exp.append_block('4_block', Block2, 2)  % Block 2: Non-informative/ Short SOA for 10 trials
-Exp.run() % run all blocks   
+Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/ Short SOA for 5 trials
+Exp.run() % run all blocks  
+results = Exp.save_run('test_save.mat');  
 sca; 
  
 % TODOs: 
 % Choose the fixed params correctly and change them in CuedRectParams
-% Choose a good way to save all of the results matrices for each block
+
 

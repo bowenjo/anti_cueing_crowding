@@ -18,6 +18,12 @@ classdef CueRects < TrialModule & CueRectsParams
         cueFrames % int - number frames during cue
         soaFrames % int - number frames after the cue 
         stimFrames % int - number frames during stimulus
+        
+        isiTime % int - number secs of fixation before cue
+        cueTime % int - nimber secs during cue
+        soaTime % int - number secs after the cue
+        stimTime % int - number secs during stimulus
+        
       
     end
     
@@ -41,11 +47,17 @@ classdef CueRects < TrialModule & CueRectsParams
             self.orientChoice = orientChoice;
             
             % timing information
+            self.isiTime = isiTime;
+            self.cueTime = cueTime;
+            self.soaTime = soaTime;
+            self.stimTime = stimTime;
+            
             self.ifi = Screen('GetFlipInterval', window);
             self.isiFrames = round(isiTime / self.ifi);
             self.cueFrames = round(cueTime / self.ifi);
             self.soaFrames = round(soaTime / self.ifi);
             self.stimFrames = round(stimTime / self.ifi);
+            
         end
         
         function set_exp_design(self, nTrials) 
@@ -204,7 +216,24 @@ classdef CueRects < TrialModule & CueRectsParams
             self.results(1, idx) = rsp;
             self.results(2, idx) = rt;
             self.results(3, idx) = fix;
-        end  
+        end 
+        
+        function [updatedResults, keys] = dump_results_info(self, currentResults)
+            keys = {'rsp_key'; 'RT'; 'fix_check'; 'target_key'; 'spacing'; ...
+                    'valid'; 'valid_prob'; 'soa_time'};
+            nTrials = size(self.results);
+            nTrials = nTrials(2);
+            
+            newResults = self.results;
+            newResults(4,:) = self.expDesign('T_orient') == 45;
+            newResults(5,:) = self.expDesign('spacing');
+            newResults(6,:) = self.expDesign('valid');
+            newResults(7,:) = ones(1, nTrials) .* self.cueValidProb;
+            newResults(8,:) = ones(1, nTrials) .* (self.soaTime);
+            
+            updatedResults = [currentResults newResults];
+        end     
+        
     end
 end
 

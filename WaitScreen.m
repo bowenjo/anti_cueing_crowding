@@ -33,6 +33,11 @@ classdef WaitScreen
                 end 
             end
         end
+        
+        function [updatedResults, keys] = dump_results_info(self, currentResults)
+            updatedResults = currentResults;
+            keys = nan;
+        end
     end
 end
 

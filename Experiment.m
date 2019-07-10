@@ -18,7 +18,7 @@ classdef Experiment
             self.nTrialTracker = containers.Map();
         end
         
-        function [] = append_block(self, index, Module, nTrials)
+        function append_block(self, index, Module, nTrials)
             %append_block Appends an experiment block to the full design
             %   index - str - the container key
             %   Module - MatLab class - the block module containing all the
@@ -28,7 +28,7 @@ classdef Experiment
             self.nTrialTracker(index) = nTrials;
         end
         
-        function [] = run(self)
+        function run(self)
             blockKeys = keys(self.blocks);
             for i = 1:length(blockKeys)
                 key = blockKeys{i};
@@ -36,6 +36,19 @@ classdef Experiment
                 nTrials = self.nTrialTracker(key);
                 block.run(nTrials, key);
             end
+        end
+        
+        function resultsTable = save_run(self, file)
+            blockKeys = keys(self.blocks);
+            Trial = [];
+            for i = 1:length(blockKeys)
+                key = blockKeys{i};
+                block = self.blocks(key);
+                [Trial, resultKeys] = block.dump_results_info(Trial);
+            end
+            
+            resultsTable = array2table(Trial, 'RowNames', resultKeys);
+            save(file, 'resultsTable')
         end
     end
 end
