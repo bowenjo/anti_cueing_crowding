@@ -117,7 +117,9 @@ classdef CueRects < TrialModule & CueRectsParams
         end
         
         function [dest] = get_destination(self, rectIdx, offset)
-            radius = self.diameter / 2;
+            radius = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, self.diameter/2);
+            
             x1 = (self.xPos(rectIdx) - offset(1)) - radius;
             y1 = (self.yPos(rectIdx) - offset(2)) - radius;
             x2 = (self.xPos(rectIdx) - offset(1)) + radius;
@@ -134,23 +136,26 @@ classdef CueRects < TrialModule & CueRectsParams
                 trialOrientations(i) = orientations(idx);
             end
             stimuli = make_grating(self.window, trialOrientations,...
-                1, self.diameter, self.spatialFrequency, self.contrast);
+                self.diameter, self.spatialFrequency, self.contrast, ...
+                self.subjectDistance, self.physicalWidthScreen, self.xRes);
             
             % get the destinations
             dests = zeros(3, 4);
             s = self.expDesign('spacing');
             dests(1,:) = self.get_destination(rectIdx, [0,0]); %target
-            if s(idx) == 0
+            sTrial = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, s(idx));
+            if sTrial == 0
                 stimuli = stimuli(1); % just get the target for 0 spacing 
             else
-                dests(2,:) = self.get_destination(rectIdx, [s(idx),0]); %left flanker
-                dests(3,:) = self.get_destination(rectIdx, [-s(idx),0]); %right flanker
+                dests(2,:) = self.get_destination(rectIdx, [sTrial,0]); %left flanker
+                dests(3,:) = self.get_destination(rectIdx, [-sTrial,0]); %right flanker
             end
         end
             
         function [] = place_stimuli(self, stimuli, dests)
             for i = 1:length(stimuli)
-                Screen('DrawTexture', self.window, stimuli(i),[], dests(i,:), 0);
+                Screen('DrawTexture', self.window, stimuli(i),[], dests(i,:));
             end
         end
         

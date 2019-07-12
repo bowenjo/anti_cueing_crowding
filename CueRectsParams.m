@@ -32,6 +32,10 @@ classdef CueRectsParams < handle
         
         % fixation check info
         fixLoc
+        subjectDistance % subject distance to screen in cm
+        physicalWidthScreen % physical width of screen in cm
+        
+        dummymode 
     end
     
     methods
@@ -40,8 +44,21 @@ classdef CueRectsParams < handle
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
             
-            self.baseRect = [0 0 400 200];
-            self.xPos = [.25 .75] * self.xRes;
+            self.subjectDistance = 60; 
+            self.physicalWidthScreen = 47.244; 
+            
+            
+            widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, 15.5);
+            heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, 4.5);
+            self.baseRect = [0 0 widthBox heightBox];
+            
+            xOffset = 12; % target location in degrees
+            xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, xOffset);
+            
+            self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
             self.yPos = [.5 .5] * self.yRes;
             self.nRects = length(self.xPos);
             
@@ -60,8 +77,8 @@ classdef CueRectsParams < handle
             end  
             
             % grating information
-            self.spatialFrequency = .03;
-            self.diameter = 80;
+            self.spatialFrequency = 3;
+            self.diameter = 1.5;
             self.contrast = 1;
             
             % response info

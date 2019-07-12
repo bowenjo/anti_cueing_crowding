@@ -85,7 +85,7 @@ classdef TrialModule < handle
 
                 % trail recalibration
                 MAX_CHECK = 3; % check 3 times for fixation
-                ncheck = 0; % 
+                ncheck = 0; 
                 fix = 0;
                 while fix~=1 % if there is no fixation, check for fixation
                     ncheck = ncheck + 1; 
@@ -101,14 +101,14 @@ classdef TrialModule < handle
                         Screen('Flip', self.window);
                         WaitSecs(0.6);
                     elseif fix == 0 && ncheck == MAX_CHECK 
-                        Eyelink('message', 'FORCED_CALIBRATION'); % calibrate again
+                        Eyelink('Message', 'FORCED_CALIBRATION'); % calibrate again
                         EyelinkDoTrackerSetup(self.el);
                         Eyelink('startrecording');	% start recording
                         WaitSecs(.1);
 
                         err = Eyelink('checkrecording'); % check recording status
                         if err~=0
-                            Eyelink('message', 'TRIAL ERRORWITHIN');
+                            Eyelink('Message', 'TRIAL ERRORWITHIN');
                         end
                         Screen('Flip', self.window);
                         ncheck = 0; 
