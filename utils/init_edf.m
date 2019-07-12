@@ -1,13 +1,6 @@
 function init_edf(expName, edfFile, xRes, yRes)
     % Initializes eyeLink-connection, creates edf-file
     % and writes experimental parameters to edf-file
-    dummymode = 0;
-    if ~EyelinkInit(dummymode)
-        fprintf('Eyelink Init aborted.\n');
-        % cleanup;  % cleanup function
-        return;
-    end
-    
     % Create the file
     status=Eyelink('openfile', edfFile);
     if status~=0

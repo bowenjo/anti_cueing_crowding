@@ -12,7 +12,8 @@ clearvars;
 PsychDefaultSetup(2);
 screens = Screen('Screens');
 screenNumber = max(screens);
-backgroundGrey = WhiteIndex(screenNumber) /2;
+backgroundGrey = WhiteIndex(screenNumber)/2;
+EyelinkInit()
 
 utilsPath = [pwd '/utils'];
 addpath(utilsPath)
@@ -39,8 +40,8 @@ orientProb = [.5 .5];
 % Independent variables
 soaTime = 600/1000; %600 ms
 cueValidProb = .8; % probability the cue is valid
-spaceCh = [0, 100]; % define your spacing choices in pixels
-spaceProb = [1, 0]; % decide the proportion of each choice  
+spaceCh = [1.75]; % define your spacing choices in pixels
+spaceProb = [1]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
 Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
@@ -80,10 +81,9 @@ Exp.append_block('2_block', Block1, 5) % Block 1: Informative/Long SOA for 5 tri
 Exp.append_block('3_wait', nWait, 0) 
 Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/Short SOA for 5 trials
 Exp.run() % run all blocks  
+% dump the important results to a table for all trials in the experiment
 results = Exp.save_run('test_save.mat');  
 sca; 
  
-% TODOs: 
-% Choose the fixed params correctly and change them in CuedRectParams
 
 
