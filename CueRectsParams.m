@@ -31,11 +31,9 @@ classdef CueRectsParams < handle
         escapeKey % escape key code
         
         % fixation check info
-        fixLoc
+        fixLoc % the location of the fixation box
         subjectDistance % subject distance to screen in cm
         physicalWidthScreen % physical width of screen in cm
-        
-        dummymode 
     end
     
     methods
@@ -46,8 +44,7 @@ classdef CueRectsParams < handle
             
             self.subjectDistance = 60; 
             self.physicalWidthScreen = 47.244; 
-            
-            
+           
             widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, 15.5);
             heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
