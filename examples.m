@@ -54,7 +54,7 @@ Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
 % Independent variables
 soaTime = 40/1000; % 40ms
 cueValidProb = .5; % probability the cue is valid
-spaceCh = [0, 100]; % define your spacing choices in pixels
+spaceCh = [0, 7]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
