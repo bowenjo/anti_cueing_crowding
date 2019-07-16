@@ -36,6 +36,7 @@ classdef Experiment
                 nTrials = self.nTrialTracker(key);
                 block.run(nTrials, key);
             end
+            Eyelink('StopRecording');
         end
         
         function resultsTable = save_run(self, file)
