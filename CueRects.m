@@ -148,8 +148,8 @@ classdef CueRects < TrialModule & CueRectsParams
             if sTrial == 0
                 stimuli = stimuli(1); % just get the target for 0 spacing 
             else
-                dests(2,:) = self.get_destination(rectIdx, [sTrial,0]); %left flanker
-                dests(3,:) = self.get_destination(rectIdx, [-sTrial,0]); %right flanker
+                dests(2,:) = self.get_destination(rectIdx, [0,sTrial]); %left flanker
+                dests(3,:) = self.get_destination(rectIdx, [0,-sTrial]); %right flanker
             end
         end
             
@@ -220,7 +220,7 @@ classdef CueRects < TrialModule & CueRectsParams
             % append the resonse data
             self.results(1, idx) = rsp;
             self.results(2, idx) = rt;
-            self.results(3, idx) = fix;
+            self.results(3, idx) = fix;  
         end 
         
         function [updatedResults, keys] = dump_results_info(self, currentResults)
