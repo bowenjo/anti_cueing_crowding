@@ -46,9 +46,9 @@ classdef CueRectsParams < handle
             self.physicalWidthScreen = 47.244; 
            
             widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, 15.5);
-            heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, 4.5);
+            heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, 15.5);
             self.baseRect = [0 0 widthBox heightBox];
             
             xOffset = 12; % target location in degrees
@@ -84,8 +84,8 @@ classdef CueRectsParams < handle
             self.rightKey = KbName('RightArrow');
             
             % fixation info
-            self.fixLoc =  [self.xCenter-20, self.yCenter-20, ...
-                            self.xCenter+20, self.yCenter+20]; 
+            self.fixLoc =  [self.xCenter-40, self.yCenter-40, ...
+                            self.xCenter+40, self.yCenter+40]; 
         end
     end
 end
