@@ -7,9 +7,12 @@ function pix = angle2pix(subjectDistance, physicalWidth, resolution, ang)
 %   ang - num - the angle in degrees to convert to pixels
 
 %Calculate pixel size
+% pixSize = physicalWidth/resolution;  
+% sz = 2*subjectDistance*tan(pi*ang/(2*180));  
+% pix = round(sz/pixSize); 
 pixSize = physicalWidth/resolution;  
-sz = 2*subjectDistance*tan(pi*ang/(2*180));  
-pix = round(sz/pixSize);  
+sz = subjectDistance*tan(pi*ang/(180));  
+pix = round(sz/pixSize);
 
 return
 

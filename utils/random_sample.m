@@ -4,7 +4,9 @@ function [permuted_sample] = random_sample(nTrials, prop, choices)
     %nTrials - int - number of trials 
     %prop - proportion to present corresponding elements in choices
     %choices - possible choices to be returned in the sample
-    
+
+choices = choices(randperm(length(choices))); % shuffle the choices
+
 sample = []; 
 index_tracker = 1;
 for i = 1:length(choices)
@@ -19,4 +21,3 @@ for i = 1:length(choices)
 end
 permuted_sample = sample(randperm(length(sample)));
 end
-
