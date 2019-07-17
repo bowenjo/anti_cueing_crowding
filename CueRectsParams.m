@@ -34,6 +34,16 @@ classdef CueRectsParams < handle
         fixLoc % the location of the fixation box
         subjectDistance % subject distance to screen in cm
         physicalWidthScreen % physical width of screen in cm
+        
+        % stimuli info
+        targetOrientChoice % array - target orientation choices in degrees
+        targetOrientProb % array - proportion to choose choices
+        flankerOrientChoice % array - flanker orientation choices in degrees
+        flankerOrientProb % array - proportion to choose choices
+        nFlankers % int - the number of flankers per side
+        flankerStyle % char - the flanker style - options - 't', 'r', 'b'  
+        flankerKeys % cell array - keys for the flankers
+        totalNumFlankers % int - the total number of flankers
     end
     
     methods
@@ -58,7 +68,7 @@ classdef CueRectsParams < handle
             self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
             self.yPos = [.5 .5] * self.yRes;
             self.nRects = length(self.xPos);
-            
+
             % cue information
             self.cueLum = BlackIndex(self.screenNumber);
             self.nonCueLum = WhiteIndex(self.screenNumber);
@@ -77,6 +87,25 @@ classdef CueRectsParams < handle
             self.spatialFrequency = 3;
             self.diameter = 1.5;
             self.contrast = 1;
+            
+            % stimuli info
+            self.targetOrientChoice = [45 135];
+            self.targetOrientProb = [.5 .5];
+            self.flankerOrientChoice = [1,180];
+            self.flankerOrientProb = ones(1, 180)/180;
+            
+            self.flankerStyle = 'b';   
+            self.nFlankers = 2;
+            
+            if self.flankerStyle == 't' || self.flankerStyle == 'r'
+                self.totalNumFlankers = self.nFlankers*2;
+            elseif self.flankerStyle == 'b'
+                self.totalNumFlankers = self.nFlankers*4;
+            end
+            self.flankerKeys = {};
+            for i = 1:self.totalNumFlankers
+                self.flankerKeys(i) = {['F_' char(string(i))]};
+            end
             
             % response info
             self.escapeKey = KbName('ESCAPE');
