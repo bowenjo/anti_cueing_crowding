@@ -6,11 +6,9 @@ classdef CueRects < TrialModule & CueRectsParams
         cuedRectProb % array - size(1,nRects) - probablity rectangle will be cued
         cueValidProb % float (0,1) - probability cue will be valid
         spacingProb % array - size(spacingChoice) - probability of element in spacingChoice
-        orientProb % array - size(orientChoice) - probability of element in orientChoice
         
         % data choices
         spacingChoice % array - size(1, n) - the spacing choices
-        orientChoice % array - size(1, k) - the target and flanker orientation choices
 
         % timing information
         ifi % inter-frame interval time
@@ -23,14 +21,12 @@ classdef CueRects < TrialModule & CueRectsParams
         cueTime % int - nimber secs during cue
         soaTime % int - number secs after the cue
         stimTime % int - number secs during stimulus
-        
-      
     end
     
     methods
         function self = CueRects(window, windowRect, cuedRectProb, ...
-                cueValidProb, spacingProb, orientProb, spacingChoice, ...
-                orientChoice, isiTime, cueTime, soaTime, stimTime)
+                cueValidProb, spacingProb, spacingChoice, ...
+                isiTime, cueTime, soaTime, stimTime)
             
             %CueRects Construct an instance of this class
             self = self@TrialModule(window, windowRect);
@@ -40,11 +36,9 @@ classdef CueRects < TrialModule & CueRectsParams
             self.cuedRectProb = cuedRectProb;
             self.cueValidProb = cueValidProb;
             self.spacingProb = spacingProb;
-            self.orientProb = orientProb;
             
             % data choices 
             self.spacingChoice = spacingChoice;
-            self.orientChoice = orientChoice;
             
             % timing information
             self.isiTime = isiTime;
@@ -72,10 +66,15 @@ classdef CueRects < TrialModule & CueRectsParams
             % target-flanker spacing for each trial
             self.expDesign('spacing') = random_sample(nTrials,...
                 self.spacingProb, self.spacingChoice); 
-            % target and flanker orientations for each trial
-            for key =  {'T_orient', 'L_orient', 'R_orient'} 
-                self.expDesign(char(key)) = random_sample(nTrials,...
-                    self.orientProb, self.orientChoice);
+            % target orientation
+            self.expDesign('T') = random_sample(nTrials,...
+                    self.targetOrientProb, self.targetOrientChoice);
+            % flanker orientations for each trial
+            for key = self.flankerKeys  
+               %self.expDesign(char(key)) = random_sample(nTrials,...
+               %    self.flankerOrientProb, self.flankerOrientChoice);
+                self.expDesign(char(key)) = randi(self.flankerOrientChoice, ...
+                    1, nTrials);
             end
         end
         
@@ -117,6 +116,9 @@ classdef CueRects < TrialModule & CueRectsParams
         end
         
         function [dest] = get_destination(self, rectIdx, offset)
+            % gets the destination of the stimuli with respect to the cue
+            % location
+            
             radius = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter/2);
             
@@ -127,29 +129,87 @@ classdef CueRects < TrialModule & CueRectsParams
             dest = [x1 y1 x2 y2];
         end
         
+        function [dests, flankerIdx] = get_flanker_dests(self, dests, ...
+                rectIdx, flankerIdx, offset)
+            % gets the flanker destinations
+            diameterPix = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, self.diameter);
+            
+            loc = abs(offset) > 0;
+            for i =  1:self.nFlankers
+                flankerOffset = offset;
+                if flankerOffset(loc) > 0
+                    flankerOffset(loc) = flankerOffset(loc) + (i-1)*diameterPix;
+                else
+                    flankerOffset(loc) = flankerOffset(loc) - (i-1)*diameterPix;
+                end
+                dests(flankerIdx,:) = self.get_destination(rectIdx, flankerOffset); 
+                flankerIdx = flankerIdx + 1;
+            end    
+        end
+        
         function [stimuli, dests] = make_stimuli(self, idx, rectIdx)
             % make the gratings textures
-            keys =  {'T_orient', 'L_orient', 'R_orient'};
-            trialOrientations = zeros(1, 3);
-            for i = 1:3 
-                orientations = self.expDesign(char(keys(i)));
-                trialOrientations(i) = orientations(idx);
+            trialOrientations = zeros(1, self.totalNumFlankers+1);
+            
+            % get target orientation for the trial;
+            tOrientations = self.expDesign('T');
+            trialOrientations(1) = tOrientations(idx);
+            
+            % get the flanker orientations for the trial
+            for i = 1:self.totalNumFlankers
+                fOrientations = self.expDesign(char(self.flankerKeys(i)));
+                trialOrientations(i+1) = fOrientations(idx);
             end
             stimuli = make_grating(self.window, trialOrientations,...
                 self.diameter, self.spatialFrequency, self.contrast, ...
                 self.subjectDistance, self.physicalWidthScreen, self.xRes);
             
-            % get the destinations
-            dests = zeros(3, 4);
-            s = self.expDesign('spacing');
-            dests(1,:) = self.get_destination(rectIdx, [0,0]); %target
+            % get the spacing for the trial
+            s = self.expDesign('spacing'); % spacing in DVA
             sTrial = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, s(idx));
+                self.xRes, s(idx)); % get the spaincing in pixels
+            
+            % just get the target for 0 spacing
             if sTrial == 0
-                stimuli = stimuli(1); % just get the target for 0 spacing 
-            else
-                dests(2,:) = self.get_destination(rectIdx, [sTrial,0]); %left flanker
-                dests(3,:) = self.get_destination(rectIdx, [-sTrial,0]); %right flanker
+                stimuli = stimuli(1);  
+            end
+            
+            % get the destinations for the trial
+            dests = zeros(self.totalNumFlankers+1, 4);
+            
+            % set target destination
+            dests(1,:) = self.get_destination(rectIdx, [0,0]); 
+            
+            % set flanker destination
+            flankerIdx = 2;
+            if self.flankerStyle == 't'
+                % lower flanker(s)
+                [dests, flankerIdx] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [0, sTrial]);
+                % upper flankers(s)
+                [dests, ~] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [0, -sTrial]);
+            elseif self.flankerStyle == 'r'
+                % right flanker(s)
+                [dests, flankerIdx] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [sTrial, 0]);
+                % left flankers(s)
+                [dests, ~] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [-sTrial, 0]);
+            elseif self.flankerStyle == 'b'
+                % lower flanker(s)
+                [dests, flankerIdx] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [0, sTrial]);
+                % upper flankers(s)
+                [dests, flankerIdx] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [0, -sTrial]);
+                % right flanker(s)
+                [dests, flankerIdx] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [sTrial, 0]);
+                % left flankers(s)
+                [dests, ~] = self.get_flanker_dests(...
+                    dests, rectIdx, flankerIdx, [-sTrial, 0]);
             end
         end
             
@@ -164,7 +224,7 @@ classdef CueRects < TrialModule & CueRectsParams
             timeStart = GetSecs;
             % wait for subject response
             while respToBeMade
-                [keyIsDown, secs, keyCode] = KbCheck;
+                [~, secs, keyCode] = KbCheck;
                 if keyCode(self.leftKey)
                     responseKey = 0;
                     respToBeMade = false;
@@ -230,7 +290,7 @@ classdef CueRects < TrialModule & CueRectsParams
             nTrials = nTrials(2);
             
             newResults = self.results;
-            newResults(4,:) = self.expDesign('T_orient') == 45;
+            newResults(4,:) = self.expDesign('T') == 45;
             newResults(5,:) = self.expDesign('spacing');
             newResults(6,:) = self.expDesign('valid');
             newResults(7,:) = ones(1, nTrials) .* self.cueValidProb;
