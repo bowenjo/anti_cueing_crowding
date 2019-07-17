@@ -280,7 +280,7 @@ classdef CueRects < TrialModule & CueRectsParams
             % append the resonse data
             self.results(1, idx) = rsp;
             self.results(2, idx) = rt;
-            self.results(3, idx) = fix;
+            self.results(3, idx) = fix;  
         end 
         
         function [updatedResults, keys] = dump_results_info(self, currentResults)
