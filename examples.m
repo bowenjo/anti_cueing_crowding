@@ -24,12 +24,8 @@ addpath(utilsPath)
 % timing info
 isiTime = 1; % pre-cue time
 cueTime = 200/1000; % cue presentation time
-stimTime = 133/1000; % stimulus presentation time
+stimTime = 1000/1000; % stimulus presentation time
 cuedRectProb = [.5 .5]; % probability of cue location
-
-% orientation information
-orientCh = [45 135];
-orientProb = [.5 .5];
 
 % open ptb window
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
@@ -40,13 +36,12 @@ orientProb = [.5 .5];
 % Independent variables
 soaTime = 600/1000; %600 ms
 cueValidProb = .8; % probability the cue is valid
-spaceCh = [1.75]; % define your spacing choices in pixels
+spaceCh = [0]; % define your spacing choices in pixels
 spaceProb = [1]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
 Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
-    spaceProb, orientProb, spaceCh, orientCh, ...
-    isiTime, cueTime, soaTime, stimTime);
+    spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %---------------------------------------------
 % Example Block 2: Non-Informative/ short SOA
@@ -54,13 +49,12 @@ Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
 % Independent variables
 soaTime = 40/1000; % 40ms
 cueValidProb = .5; % probability the cue is valid
-spaceCh = [0, 7]; % define your spacing choices in pixels
+spaceCh = [0, 6.25]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
-Block2 = CueRects(window,windowRect, cuedRectProb, cueValidProb, ...
-    spaceProb, orientProb, spaceCh, orientCh, ...
-    isiTime, cueTime, soaTime, stimTime);
+Block2 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
+    spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %-------------------------
 % Build full experiments
