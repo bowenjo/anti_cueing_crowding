@@ -16,7 +16,9 @@ backgroundGrey = WhiteIndex(screenNumber)/2;
 EyelinkInit()
 
 utilsPath = [pwd '/utils'];
+analysisPath = [pwd '/analysis'];
 addpath(utilsPath)
+addpath(analysisPath)
 
 %-------------
 % Fixed Params
@@ -24,7 +26,7 @@ addpath(utilsPath)
 % timing info
 isiTime = 1; % pre-cue time
 cueTime = 200/1000; % cue presentation time
-stimTime = 1000/1000; % stimulus presentation time
+stimTime = 133/1000; % stimulus presentation time
 cuedRectProb = [.5 .5]; % probability of cue location
 
 % open ptb window
@@ -36,8 +38,8 @@ cuedRectProb = [.5 .5]; % probability of cue location
 % Independent variables
 soaTime = 600/1000; %600 ms
 cueValidProb = .8; % probability the cue is valid
-spaceCh = [0]; % define your spacing choices in pixels
-spaceProb = [1]; % decide the proportion of each choice  
+spaceCh = [Inf, 1.5]; % define your spacing choices in pixels
+spaceProb = [1, 0]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
 Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
@@ -49,7 +51,7 @@ Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
 % Independent variables
 soaTime = 40/1000; % 40ms
 cueValidProb = .5; % probability the cue is valid
-spaceCh = [0, 6.25]; % define your spacing choices in pixels
+spaceCh = [Inf, 6.25]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
@@ -76,8 +78,9 @@ Exp.append_block('3_wait', nWait, 0)
 Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/Short SOA for 5 trials
 Exp.run() % run all blocks  
 % dump the important results to a table for all trials in the experiment
-results = Exp.save_run('test_save.mat');  
+results = Exp.save_run('results/test_save.mat');  
+testAnalysis(results)
 sca; 
- 
+
 
 
