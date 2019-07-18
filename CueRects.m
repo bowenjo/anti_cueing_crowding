@@ -115,6 +115,15 @@ classdef CueRects < TrialModule & CueRectsParams
                 lineWidths);
         end
         
+        function [] = cue_dot(self, cuedRect)
+            radius = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, self.diameter/2);
+            
+            dotLoc = [self.xPos(cuedRect), self.yPos(cuedRect)];
+            Screen('DrawDots', self.window, ...
+                dotLoc, radius, self.cueLum, [], 2);
+        end
+        
         function [dest] = get_destination(self, rectIdx, offset)
             % gets the destination of the stimuli with respect to the cue
             % location
@@ -256,7 +265,7 @@ classdef CueRects < TrialModule & CueRectsParams
             % Cue Interval
             for i = 1:self.cueFrames
                 self.draw_fixation();
-                self.cue_rect(cueIndex);
+                self.cue_dot(cueIndex);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
