@@ -21,13 +21,15 @@ function [gratings] = make_grating(window, orientations, diameter, ...
     widthOfGrid = diameterPixels;  % the next lines make sure that it is a whole, even number so matrix indices don’t choke.
     widthOfGrid = round (widthOfGrid);
     if mod (widthOfGrid, 2) ~= 0
-       widthOfGrid = widthOfGrid + 1 ;
+       widthOfGrid = widthOfGrid - 1 ;
     end
     halfWidthOfGrid =  (widthOfGrid / 2);
     widthArray = (-halfWidthOfGrid) : halfWidthOfGrid;  % widthArray is used in creating the meshgrid.
 
     [x, y] = meshgrid(widthArray, widthArray);
-
+    
+    G_mask = fspecial('gaussian', diameterPixels, diameterPixels/4);
+    G_mask_rescaled = 1 - (max(max(G_mask)) - G_mask) / (max(max(G_mask)) - min(min(G_mask)));
     % Now we create a circle mask
     circularMaskMatrix = (x.^2 + y.^2) < (diameterPixels/2)^2;
     absoluteDifferenceBetweenWhiteAndGray = abs(white - gray);
@@ -39,7 +41,7 @@ function [gratings] = make_grating(window, orientations, diameter, ...
         shift_y = sin(tiltInRadians) * radiansPerPixel;
         phase = pi/2;
         imageMatrix = (gray + absoluteDifferenceBetweenWhiteAndGray * ... 
-            michelsonContrast * sin(shift_x*x + shift_y*y+phase).* circularMaskMatrix);
+            michelsonContrast * sin(shift_x*x + shift_y*y+phase).* circularMaskMatrix .* G_mask_rescaled);
         gratings(i) = Screen('MakeTexture', window, imageMatrix); 
     end
 end
