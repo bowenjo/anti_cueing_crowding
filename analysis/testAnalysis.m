@@ -1,32 +1,34 @@
-function testAnalysis
+function outputTable = testAnalysis(resultsTable)
+    % load in the results table and calculate accuracy and reaction time
+    % Table row indices:
+    %   1. resp key
+    %   2. RT
+    %   3. fix_check
+    %   4. target_key
+    %   5. spacing
+    %   6. valid
+    %   7. valid_prob
+    %   8. soa_time
+    %   9. correct
+    resultsMat = resultsTable.Variables;
+    
+    % find the accuracy values
+    resultsMat(9, :) = resultsMat(1,:) == resultsMat(4,:);
+    % get the unique spacings
+    spacing = unique(resultsMat(5, :));
 
-resultsTable = load('results/test_spacing_2flank_tang.mat');
-resultsTable = resultsTable.resultsTable;
+    col = 1;
+    for sp = spacing
+        spIdx = resultsMat(5,:) == sp;
+        spAccuracy = resultsMat(9, spIdx);
+        spRT = resultsMat(2, logical(spIdx .* resultsMat(9,:)));
 
-mat = resultsTable.Variables;
-
- 
-mat_t = mat';
-mat_t(:, 9) = mat_t(:,1) == mat_t(:,4);
-
-% column 9 has accuracy
-
-spacings = [1.25 1.75 2.5 3.25 4 4.75 5.5 0];
-% spacings = [1.75 2.5 3.25 4 4.75 5.5 6.25 0];
-
-numTrials = 160;
-
-row = 1;
-
-for i = 1:size(spacings, 2)
-    idx = mat_t(:,5) == spacings(i);
-    sp_accuracy = mat_t(idx, 9);
-    sp_rt = mat_t(logical(idx .* mat_t(:,9)), 2);
-
-    finalmat(row, 1) = spacings(i);
-    finalmat(row, 2) = mean(sp_accuracy);
-    finalmat(row, 3) = mean(sp_rt);
-    row = row+1;
+        accuracy(col) = mean(spAccuracy);
+        reaction_time(col) = mean(spRT);
+        col = col+1;
+    end
+    
+    outputTable = table(spacing', accuracy', reaction_time', ...
+        'VariableNames', {'Spacing', 'Accuracy', 'Reaction_Time'});
+%     save('results/work_spacing_2flank_tang', 'outputTable')
 end
-
-save('results/work_spacing_2flank_tang', 'finalmat')
