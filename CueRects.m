@@ -179,11 +179,6 @@ classdef CueRects < TrialModule & CueRectsParams
             sTrial = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, s(idx)); % get the spaincing in pixels
             
-            % just get the target for 0 spacing
-            if sTrial == 0
-                stimuli = stimuli(1);  
-            end
-            
             % get the destinations for the trial
             dests = zeros(self.totalNumFlankers+1, 4);
             
@@ -291,6 +286,7 @@ classdef CueRects < TrialModule & CueRectsParams
             self.results(1, idx) = rsp;
             self.results(2, idx) = rt;
             self.results(3, idx) = fix;  
+            Screen('Close', stimuli)
         end 
         
         function [updatedResults, keys] = dump_results_info(self, currentResults)
