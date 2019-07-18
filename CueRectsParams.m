@@ -85,7 +85,7 @@ classdef CueRectsParams < handle
             
             % grating information
             self.spatialFrequency = 3;
-            self.diameter = 1.5;
+            self.diameter = 1;
             self.contrast = 1;
             
             % stimuli info
@@ -94,7 +94,7 @@ classdef CueRectsParams < handle
             self.flankerOrientChoice = [1,180];
             self.flankerOrientProb = ones(1, 180)/180;
             
-            self.flankerStyle = 'b';   
+            self.flankerStyle = 't';   
             self.nFlankers = 2;
             
             if self.flankerStyle == 't' || self.flankerStyle == 'r'
