@@ -232,6 +232,7 @@ classdef CueRects < TrialModule & CueRectsParams
                     responseKey = 1;
                     respToBeMade = false;
                 elseif keyCode(self.escapeKey)
+                    Eyelink('StopRecording')
                     ShowCursor;
                     sca;
                     return
@@ -249,7 +250,7 @@ classdef CueRects < TrialModule & CueRectsParams
             % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation();
-                self.cue_rect(0);
+%                 self.cue_rect(0);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
@@ -261,20 +262,20 @@ classdef CueRects < TrialModule & CueRectsParams
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation();
-                self.cue_rect(0);
+%                 self.cue_rect(0);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             fix = checkFix(self.el, self.fixLoc);
             for i = 1:self.stimFrames
                 self.draw_fixation()
-                self.cue_rect(0)
+%                 self.cue_rect(0)
                 self.place_stimuli(stimuli, dests);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
             self.draw_fixation()
-            self.cue_rect(0)
+%             self.cue_rect(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             % append the resonse data

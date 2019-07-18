@@ -86,7 +86,7 @@ classdef TrialModule < handle
                 % trail recalibration
                 MAX_CHECK = 3; % check 3 times for fixation
                 ncheck = 0; 
-                fix = 0;
+                fix = 1;
                 while fix~=1 % if there is no fixation, check for fixation
                     ncheck = ncheck + 1; 
                     self.draw_fixation()
