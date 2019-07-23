@@ -1,4 +1,4 @@
-function outputTable = analyze_results(resultsTable, filter_idx, filter_value)
+function outputTable = analyze_results(resultsTable, filterIdx, filterValues)
     % load in the results table and calculate accuracy and reaction time
     % resultsTable row keys:
     %   1. resp key
@@ -19,17 +19,18 @@ function outputTable = analyze_results(resultsTable, filter_idx, filter_value)
 
     col = 1;
     for sp = spacing
-        % indices for given spacing
-        spIdx = resultsMat(5,:) == sp;
-        % get accuracy for given spacing
-        spCorrect = resultsMat(9, spIdx); 
-        % only get RT for correct trials
-        spRT = resultsMat(2, filter_by_index(9, 1, spIdx, resultsMat));
-%         
-%         if filter_idx ~= 0
-%             
-%         end
-%         
+        % check if trial was correct
+        % filter by spacing and extra
+        idxCorrect = [5 filterIdx];
+        valueCorrect = [sp filterValues];
+        spCorrect = resultsMat(9, filter_by_index(idxCorrect, valueCorrect, resultsMat));
+        
+        % check trail reaction times
+        % filter by spacing, correct and extra
+        idxRT = [5 9 filterIdx];
+        valueRT = [sp 1 filterValues];
+        spRT = resultsMat(2, filter_by_index(idxRT, valueRT, resultsMat));
+         
         % collect and compute accuracy
         accuracy(col) = mean(spCorrect);
         reaction_time(col) = mean(spRT);
@@ -41,7 +42,13 @@ function outputTable = analyze_results(resultsTable, filter_idx, filter_value)
 %     save('results/work_spacing_2flank_tang', 'outputTable')
 end
 
-function filter_indices = filter_by_index(idx, value, spIdx, resultsMat)
-    value_filter_indices = resultsMat(idx,:) == value;
-    filter_indices = logical(spIdx .* value_filter_indices);
+function filter_indices = filter_by_index(resIndices, values, resultsMat)
+    filter_indices = ones(1, length(resultsMat));
+    for i = 1:length(resIndices)
+        idx = resIndices(i);
+        value = values(i);
+        value_filter_indices = resultsMat(idx,:) == value;
+        filter_indices = filter_indices .* value_filter_indices;
+    end
+    filter_indices = logical(filter_indices);
 end
