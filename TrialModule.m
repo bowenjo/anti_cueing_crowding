@@ -92,7 +92,7 @@ classdef TrialModule < handle
                     self.draw_fixation()
                     Screen('Flip', self.window);
                     Eyelink('message', 'FIXATION_CROSS');
-                    fix = checkFix(self.el, self.fixLoc);	
+                    fix = check_fix(self.el, self.fixLoc);	
                     
                     if fix == 0 && ncheck < MAX_CHECK
                         Screen('Flip', self.window);
