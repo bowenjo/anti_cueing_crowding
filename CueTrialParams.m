@@ -1,4 +1,4 @@
-classdef CueRectsParams < handle
+classdef CueTrialParams < handle
     % Class for calling fixed parameters for the CueRects module
     
     properties
@@ -18,7 +18,7 @@ classdef CueRectsParams < handle
         nonCueLum % float - non-cued rectangle luminance value
         cueWidth % int - cued rectangle outline width in pixels
         nonCueWidth % int - non-cued rectangle outline width in pixels
-        postCuedRect % array - size(1,nRects) - rectangle indices to present the stimuli following a cue 
+        postCuedLoc % array - size(1,nRects) - rectangle indices to present the stimuli following a cue 
         
         % grating parameters
         spatialFrequency % float - spatial frequency of disparity grating
@@ -47,7 +47,7 @@ classdef CueRectsParams < handle
     end
     
     methods
-        function self = CueRectsParams()
+        function self = CueTrialParams()
             %Construct an instance of this class
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
@@ -74,7 +74,7 @@ classdef CueRectsParams < handle
             self.nonCueLum = WhiteIndex(self.screenNumber);
             self.cueWidth = 6;
             self.nonCueWidth = 2;
-            self.postCuedRect = [2 1];
+            self.postCuedLoc = [2 1];
             
             % Get the rects
             self.rects = nan(4,self.nRects);
