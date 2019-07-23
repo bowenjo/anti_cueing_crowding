@@ -25,7 +25,7 @@ nBlocks = nTotalTrials/nTrialsPerBlock;
 isiTime = 1; % pre-cue time
 cueTime = 200/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
-cuedRectProb = [.5 .5]; % probability of cue location
+cuedLocProb = [.5 .5]; % probability of cue location
 cueValidProb = .8;
 
 % Ask for session number 
@@ -44,12 +44,12 @@ spacingProb = ones(1, 8) / 8;
 % -----------------
 % Informative/Long SOA
 soaTime = 600/1000;
-LongBlock = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
+LongBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 
 % Non-informative/Short SOA
 soaTime = 40/1000;
-ShortBlock = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
+ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 
 waitMessage = 'Press space bar to start';
