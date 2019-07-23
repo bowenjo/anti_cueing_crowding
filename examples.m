@@ -27,7 +27,7 @@ addpath(analysisPath)
 isiTime = 1; % pre-cue time
 cueTime = 200/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
-cuedRectProb = [.5 .5]; % probability of cue location
+cuedLocProb = [.5 .5]; % probability of cue location
 
 % open ptb window
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
@@ -42,7 +42,7 @@ spaceCh = [Inf, 1.5]; % define your spacing choices in pixels
 spaceProb = [1, 0]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
-Block1 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
+Block1 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %---------------------------------------------
@@ -55,7 +55,7 @@ spaceCh = [Inf, 6.25]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
-Block2 = CueRects(window, windowRect, cuedRectProb, cueValidProb, ...
+Block2 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %-------------------------
@@ -79,7 +79,7 @@ Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/Short SOA for
 Exp.run() % run all blocks  
 % dump the important results to a table for all trials in the experiment
 results = Exp.save_run('results/test_save.mat');  
-testAnalysis(results)
+analyze_results(results)
 sca; 
 
 
