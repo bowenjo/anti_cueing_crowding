@@ -270,7 +270,7 @@ classdef CueRects < TrialModule & CueRectsParams
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
-            fix = checkFix(self.el, self.fixLoc);
+            fix = 1; %checkFix(self.el, self.fixLoc); TODO: timing is off here
             for i = 1:self.stimFrames
                 self.draw_fixation()
 %                 self.cue_rect(0)

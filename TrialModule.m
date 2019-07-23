@@ -38,7 +38,7 @@ classdef TrialModule < handle
             self.el=EyelinkInitDefaults(self.window);
             self.el.backgroundcolor = .5;
             % initialize the .edf File 
-            init_edf(expName, edfFile, self.xRes, self.yRes);
+% T commented out:             init_edf(expName, edfFile, self.xRes, self.yRes);
             EyelinkDoTrackerSetup(self.el);
         end
         

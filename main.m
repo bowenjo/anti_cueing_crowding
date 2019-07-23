@@ -90,5 +90,9 @@ save(['results/' sessionNumber '/Experiment.mat'], 'Exp')
 results = Exp.save_run(['results/' sessionNumber '/results_table.mat']);
 sca;
 
+% TODO: timing of fixCheck is off - need to include the check time in the 
+% SOA time: can't be greater than 40ms total. Right now it's up to 200ms +
+% SOA time
+
 
     
