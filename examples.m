@@ -79,7 +79,7 @@ Exp.append_block('4_block', Block2, 5)  % Block 2: Non-informative/Short SOA for
 Exp.run() % run all blocks  
 % dump the important results to a table for all trials in the experiment
 results = Exp.save_run('results/test_save.mat');  
-analyze_results(results)
+analyze_results(results, [], [])
 sca; 
 
 

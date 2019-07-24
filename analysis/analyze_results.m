@@ -1,6 +1,6 @@
 function outputTable = analyze_results(resultsTable, filterIdx, filterValues)
     % load in the results table and calculate accuracy and reaction time
-    % resultsTable row keys:
+    % resultsTable row keys (i.e. filter indices):
     %   1. resp key
     %   2. RT
     %   3. fix_check
@@ -32,7 +32,7 @@ function outputTable = analyze_results(resultsTable, filterIdx, filterValues)
         spRT = resultsMat(2, filter_by_index(idxRT, valueRT, resultsMat));
          
         % collect and compute accuracy
-        accuracy(col) = mean(spCorrect);
+        accuracy(col) = length(spCorrect);
         reaction_time(col) = mean(spRT);
         col = col+1;
     end
