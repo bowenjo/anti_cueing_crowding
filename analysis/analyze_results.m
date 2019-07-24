@@ -32,7 +32,7 @@ function outputTable = analyze_results(resultsTable, filterIdx, filterValues)
         spRT = resultsMat(2, filter_by_index(idxRT, valueRT, resultsMat));
          
         % collect and compute accuracy
-        accuracy(col) = length(spCorrect);
+        accuracy(col) = mean(spCorrect);
         reaction_time(col) = mean(spRT);
         col = col+1;
     end
