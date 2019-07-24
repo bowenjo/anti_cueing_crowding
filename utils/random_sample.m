@@ -1,4 +1,4 @@
-function [permuted_sample] = random_sample(nTrials, prop, choices)
+function [permuted_sample] = random_sample(nTrials, prop, choices, order)
 % creates a random-order data sample of length nTrials composed 
 % of elements from choices at different proportions
     %nTrials - int - number of trials 
@@ -17,5 +17,8 @@ for i = 1:length(choices)
         repmat(choices(i), 1, nTrialsChoice);
     index_tracker = index_tracker + nTrialsChoice;
 end
-permuted_sample = sample(randperm(length(sample)));
+if ~order
+    permuted_sample = sample(randperm(length(sample)));
+else
+    permuted_sample = sample;
 end

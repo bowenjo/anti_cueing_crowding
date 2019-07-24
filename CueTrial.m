@@ -59,16 +59,12 @@ classdef CueTrial < TrialModule & CueTrialParams
             % each trial
             % cue locations for the each trial
             self.expDesign('cue_loc') = random_sample(nTrials, ...
-                self.cuedLocProb, 1:self.nRects);
-            % cue validity for each trial
-            self.expDesign('valid') = random_sample(nTrials,...
-                [self.cueValidProb, 1-self.cueValidProb], [1 0]);
-            % target-flanker spacing for each trial
-            self.expDesign('spacing') = random_sample(nTrials,...
-                self.spacingProb, self.spacingChoice); 
+                self.cuedLocProb, 1:self.nRects, false);
+            
+            % orientations
             % target orientation
             self.expDesign('T') = random_sample(nTrials,...
-                    self.targetOrientProb, self.targetOrientChoice);
+                    self.targetOrientProb, self.targetOrientChoice, false);
             % flanker orientations for each trial
             for key = self.flankerKeys  
                %self.expDesign(char(key)) = random_sample(nTrials,...
@@ -76,6 +72,23 @@ classdef CueTrial < TrialModule & CueTrialParams
                 self.expDesign(char(key)) = randi(self.flankerOrientChoice, ...
                     1, nTrials);
             end
+            
+            % choose validity dpendent on spacing
+            % target-flanker spacing for each trial
+            spacingOrdered = random_sample(nTrials,...
+                self.spacingProb, self.spacingChoice, true);
+            % cue validity for each spacing
+            nTrialsPerSpacing = round(nTrials/length(self.spacingChoice));
+            validOrdered = [];
+            for i = 1:length(self.spacingChoice)
+                validPerSpacing = random_sample(nTrialsPerSpacing,...
+                    [self.cueValidProb, 1-self.cueValidProb], [1 0], true);
+                validOrdered = [validOrdered validPerSpacing];
+            end
+            permIndices = randperm(length(spacingOrdered));
+            self.expDesign('spacing') = spacingOrdered(permIndices);
+            self.expDesign('valid') = validOrdered(permIndices);
+
         end
         
         function set_results_matrix(self, nTrials)
@@ -279,6 +292,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.draw_fixation()
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
+
             % append the resonse data
             fix = sum(fixationChecks) == length(fixationChecks);
             self.results(1, idx) = rsp;

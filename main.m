@@ -68,7 +68,7 @@ Wait = WaitScreen(window, waitMessage, 70);
 % ----------------
 Exp = Experiment();
 blockLabels = string(1:nBlocks);
-soaChoices = random_sample(nBlocks, [0.5 0.5], [0 1]);
+soaChoices = random_sample(nBlocks, [0.5 0.5], [0 1], false);
 for i = 1:nBlocks
     label = blockLabels(i);
     waitLabel = label + "_0_wait";
@@ -90,9 +90,6 @@ save(['results/' sessionNumber '/Experiment.mat'], 'Exp')
 results = Exp.save_run(['results/' sessionNumber '/results_table.mat']);
 sca;
 
-% TODO: timing of fixCheck is off - need to include the check time in the 
-% SOA time: can't be greater than 40ms total. Right now it's up to 200ms +
-% SOA time
 
 
     
