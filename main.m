@@ -52,7 +52,7 @@ soaTime = 40/1000;
 ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 
-waitMessage = 'Press space bar to start';
+waitMessage = '\n Press space bar to start';
 Wait = WaitScreen(window, waitMessage, 70); 
 
 % -----------------
@@ -74,7 +74,9 @@ for i = 1:nBlocks
     waitLabel = label + "_0_wait";
     blockLabel = label + "_1_block";
     % add wait message screen
-    Exp.append_block(waitLabel, Wait, 0);
+    WaitBlock = Wait;
+    WaitBlock.displayText = [char(string(i)) '/' char(string(nBlocks)) WaitBlock.displayText];
+    Exp.append_block(waitLabel, WaitBlock, 0);
     % add block 
     if soaChoices(i)
         Exp.append_block(blockLabel, LongBlock, nTrialsPerBlock);
