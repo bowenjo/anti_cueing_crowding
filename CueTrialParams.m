@@ -52,8 +52,8 @@ classdef CueTrialParams < handle
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
             
-            self.subjectDistance = 60; 
-            self.physicalWidthScreen = 47.244; 
+            self.subjectDistance = 49; 
+            self.physicalWidthScreen = 43; 
            
             widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, 4.5);
@@ -61,7 +61,7 @@ classdef CueTrialParams < handle
                 self.xRes, 15.5);
             self.baseRect = [0 0 widthBox heightBox];
             
-            xOffset = 12; % target location in degrees
+            xOffset = 14; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
