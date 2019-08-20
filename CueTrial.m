@@ -3,7 +3,7 @@ classdef CueTrial < TrialModule & CueTrialParams
     
     properties
         % data randomization info
-        cuedLocProb % array - size(1,nRects) - probablity rectangle will be cued
+        cuedLocProb % array - size(1,nLocs) - probablity rectangle will be cued
         cueValidProb % float (0,1) - probability cue will be valid
         spacingProb % array - size(spacingChoice) - probability of element in spacingChoice
         
@@ -49,7 +49,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.ifi = Screen('GetFlipInterval', window);
             self.isiFrames = round(isiTime / self.ifi);
             self.cueFrames = round(cueTime / self.ifi);
-            self.soaFrames = round(soaTime / self.ifi);
+            self.soaFrames = round((soaTime - cueTime) / self.ifi);
             self.stimFrames = round(stimTime / self.ifi);
             
         end
@@ -59,7 +59,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % each trial
             % cue locations for the each trial
             self.expDesign('cue_loc') = random_sample(nTrials, ...
-                self.cuedLocProb, 1:self.nRects, false);
+                self.cuedLocProb, 1:self.nLocs, false);
             
             % orientations
             % target orientation
@@ -69,8 +69,8 @@ classdef CueTrial < TrialModule & CueTrialParams
             for key = self.flankerKeys  
                %self.expDesign(char(key)) = random_sample(nTrials,...
                %    self.flankerOrientProb, self.flankerOrientChoice);
-                self.expDesign(char(key)) = randi(self.flankerOrientChoice, ...
-                    1, nTrials);
+               flankerChoices = randi([1, length(self.flankerOrientChoice)], 1, nTrials);
+               self.expDesign(char(key)) = self.flankerOrientChoice(flankerChoices);
             end
             
             % choose validity dpendent on spacing
@@ -93,7 +93,7 @@ classdef CueTrial < TrialModule & CueTrialParams
         
         function set_results_matrix(self, nTrials)
             nMetrics = 3; % response key, fixation, and reaction time
-            self.results = zeros(nMetrics, nTrials);
+            self.results = nan(nMetrics, nTrials);
         end
         
         function [cuedLoc, postLoc] = get_cue(self, idx)
@@ -113,19 +113,20 @@ classdef CueTrial < TrialModule & CueTrialParams
             end
         end
         
-        function [] = cue_rect(self, cuedLoc)
+        function [] = cue_vlines(self, cuedLoc)
             % highlights the cued rectangle with a different width and
             % get the rectangle luminance and width info
-            lums = repmat(self.nonCueLum, 3, self.nRects);
-            lineWidths = repmat(self.nonCueWidth, 1, self.nRects);
+            lums = repmat(self.nonCueLum, 3, self.nLocs*4);
+            lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
             % change the luminance and width if a cue is present
-            if cuedLoc ~= 0 
-                lums(:, cuedLoc) = repmat(self.cueLum, 3, 1);
-                lineWidths(cuedLoc) = self.cueWidth;
+            if cuedLoc ~= 0
+                lineLoc = cuedLoc*2;
+                lums(:, lineLoc*2-3:lineLoc*2) = repmat(self.cueLum, 3, 4);
+                lineWidths(lineLoc-1:lineLoc) = repmat(self.cueWidth, 1, 2);
             end
             % Display the rects
-            Screen('FrameRect', self.window, lums, self.rects,...
-                lineWidths);
+            Screen('DrawLines', self.window, self.vLines, lineWidths,...
+                lums, [self.xCenter self.yCenter]);
         end
         
         function [] = cue_dot(self, cuedLoc)
@@ -136,6 +137,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             Screen('DrawDots', self.window, ...
                 dotLoc, radius, self.cueLum, [], 2);
         end
+        
         
         function [dest] = get_destination(self, rectIdx, offset)
             % gets the destination of the stimuli with respect to the cue
@@ -262,39 +264,43 @@ classdef CueTrial < TrialModule & CueTrialParams
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
-            fixationChecks = zeros(1, self.soaFrames);
+            fixationChecks = zeros(1, self.stimFrames);
             % Eyelink stuff
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation();
+                self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
             for i = 1:self.cueFrames
                 self.draw_fixation();
-                self.cue_dot(cueIndex);
+                self.cue_vlines(cueIndex);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation();
-                fixationChecks(i) = check_fix(self.el, self.fixLoc);
+                self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
                 self.draw_fixation()
+                self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
+                fixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
             self.draw_fixation()
+            self.cue_vlines(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
 
             % append the resonse data
-            fix = sum(fixationChecks) == length(fixationChecks);
+            fix = mean(fixationChecks == 1);
             self.results(1, idx) = rsp;
             self.results(2, idx) = rt;
             self.results(3, idx) = fix;  

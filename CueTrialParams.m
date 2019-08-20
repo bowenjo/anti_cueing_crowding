@@ -10,8 +10,8 @@ classdef CueTrialParams < handle
         baseRect % array - base cue rectangle 
         xPos % int - x-coordinate positions of the boxes in pixels
         yPos % int - y-coordinate positions of the boxes in pixels
-        nRects % int - number of rectangles
-        rects % the rectangle bounding box coordinates
+        nLocs % int - number of rectangles
+        vLines % the rectangle bounding box coordinates
        
         % cue information
         cueLum % float - cued rectangle luminance value
@@ -52,50 +52,54 @@ classdef CueTrialParams < handle
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
             
-            self.subjectDistance = 60; 
-            self.physicalWidthScreen = 47.244; 
-           
-            widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, 4.5);
-            heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, 15.5);
-            self.baseRect = [0 0 widthBox heightBox];
+            self.subjectDistance = 49; 
+            self.physicalWidthScreen = 43; 
             
-            xOffset = 12; % target location in degrees
+%             widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+%                 self.xRes, 4.5);
+%             heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+%                 self.xRes, 15.5);
+%             self.baseRect = [0 0 widthBox heightBox];
+
+            % cue information
+            self.cueLum = WhiteIndex(self.screenNumber);
+            self.nonCueLum = BlackIndex(self.screenNumber);
+            self.cueWidth = 6;
+            self.nonCueWidth = 2;
+            self.postCuedLoc = [2 1];
+            
+            % grating information
+            self.diameter = .75;
+            self.spatialFrequency = 5/self.diameter;
+            self.contrast = 1;
+            
+            % Get the vertical cue lines
+            xOffset = 14; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
             self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
             self.yPos = [.5 .5] * self.yRes;
-            self.nRects = length(self.xPos);
-
-            % cue information
-            self.cueLum = BlackIndex(self.screenNumber);
-            self.nonCueLum = WhiteIndex(self.screenNumber);
-            self.cueWidth = 6;
-            self.nonCueWidth = 2;
-            self.postCuedLoc = [2 1];
             
-            % Get the rects
-            self.rects = nan(4,self.nRects);
-            for i = 1:self.nRects
-                self.rects(:, i) = CenterRectOnPointd(self.baseRect,...
-                    self.xPos(i), self.yPos(i));
-            end  
-            
-            % grating information
-            self.spatialFrequency = 3;
-            self.diameter = 1;
-            self.contrast = 1;
+            self.nLocs = length(self.xPos);
+            vls = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, self.diameter); % vline space
+            self.vLines = [];
+            for os = [-xOffsetPix, xOffsetPix]
+                xCoor = [os+vls, os+vls, os-vls, os-vls];
+                yCoor = [-vls/2, vls/2, -vls/2, vls/2];
+                lines = [xCoor; yCoor];
+                self.vLines = [self.vLines lines];
+            end
             
             % stimuli info
             self.targetOrientChoice = [45 135];
             self.targetOrientProb = [.5 .5];
-            self.flankerOrientChoice = [1,180];
+            self.flankerOrientChoice = [1:35 55:125 145:180];
             self.flankerOrientProb = ones(1, 180)/180;
             
             self.flankerStyle = 't';   
-            self.nFlankers = 2;
+            self.nFlankers = 1;
             
             if self.flankerStyle == 't' || self.flankerStyle == 'r'
                 self.totalNumFlankers = self.nFlankers*2;

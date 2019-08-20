@@ -28,11 +28,12 @@ function [gratings] = make_grating(window, orientations, diameter, ...
 
     [x, y] = meshgrid(widthArray, widthArray);
     
-    G_mask = fspecial('gaussian', diameterPixels, diameterPixels/4);
-    G_mask_rescaled = 1 - (max(max(G_mask)) - G_mask) / (max(max(G_mask)) - min(min(G_mask)));
     % Now we create a circle mask
     circularMaskMatrix = (x.^2 + y.^2) < (diameterPixels/2)^2;
     absoluteDifferenceBetweenWhiteAndGray = abs(white - gray);
+    
+    G_mask = fspecial('gaussian', widthOfGrid+1, diameterPixels/6);
+    G_mask_rescaled = 1 - (max(max(G_mask)) - G_mask) / (max(max(G_mask)) - min(min(G_mask)));
     % Generate display gratings from orientation
     gratings = zeros(1, length(orientations));
     for i = 1:length(orientations)
