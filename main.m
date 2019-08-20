@@ -36,7 +36,7 @@ mkdir(['results/' sessionNumber]);
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 
 % all spacings 
-spacingChoices = [Inf 1.25:0.50:4.25];
+spacingChoices = [Inf 1.25:1/3:3.25];
 spacingProb = ones(1, 8) / 8;
 
 % -----------------
