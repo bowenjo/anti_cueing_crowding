@@ -69,28 +69,9 @@ classdef CueTrialParams < handle
             self.postCuedLoc = [2 1];
             
             % grating information
-            self.diameter = .75;
-            self.spatialFrequency = 5/self.diameter;
+            self.diameter = 1;
+            self.spatialFrequency = 4/self.diameter;
             self.contrast = 1;
-            
-            % Get the vertical cue lines
-            xOffset = 14; % target location in degrees
-            xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, xOffset);
-            
-            self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
-            self.yPos = [.5 .5] * self.yRes;
-            
-            self.nLocs = length(self.xPos);
-            vls = angle2pix(self.subjectDistance, ...
-                self.physicalWidthScreen, self.xRes, self.diameter); % vline space
-            self.vLines = [];
-            for os = [-xOffsetPix, xOffsetPix]
-                xCoor = [os+vls, os+vls, os-vls, os-vls];
-                yCoor = [-vls/2, vls/2, -vls/2, vls/2];
-                lines = [xCoor; yCoor];
-                self.vLines = [self.vLines lines];
-            end
             
             % stimuli info
             self.targetOrientChoice = [45 135];
@@ -120,6 +101,28 @@ classdef CueTrialParams < handle
             self.fixLoc =  [self.xCenter-40, self.yCenter-40, ...
                             self.xCenter+40, self.yCenter+40]; 
         end
+        
+        function set_position_params(self)
+            % Get the vertical cue lines
+            xOffset = 14; % target location in degrees
+            xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
+                self.xRes, xOffset);
+            
+            self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
+            self.yPos = [.5 .5] * self.yRes;
+            
+            self.nLocs = length(self.xPos);
+            vls = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, self.diameter); % vline space
+            self.vLines = [];
+            for os = [-xOffsetPix, xOffsetPix]
+                xCoor = [os+vls, os+vls, os-vls, os-vls];
+                yCoor = [-vls/2, vls/2, -vls/2, vls/2];
+                lines = [xCoor; yCoor];
+                self.vLines = [self.vLines lines];
+            end
+        end
+        
     end
 end
 
