@@ -7,6 +7,8 @@ classdef Experiment
     %   2) run
     %       runs the full experiment (all appended blocks)
     
+    % TODO: convert all containers.Map()/tables/results matrices to be structures
+    
     properties
     blocks % containers.Map() - blocks of the experiment
     nTrialTracker % containers.Map() - the number of trials in each block

@@ -23,7 +23,7 @@ nTotalTrials = 960;
 nTrialsPerBlock = 120;
 nBlocks = nTotalTrials/nTrialsPerBlock;
 isiTime = 1; % pre-cue time
-cueTime = 200/1000; % cue presentation time
+cueTime = 40/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
 cuedLocProb = [.5 .5]; % probability of cue location
 cueValidProb = .8;
@@ -37,7 +37,43 @@ mkdir(['results/' sessionNumber]);
 
 % all spacings 
 spacingChoices = [Inf 1.25:1/3:3.25];
-spacingProb = ones(1, 8) / 8;
+spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
+
+% base wait screen
+waitMessage = '\n Press space bar to start';
+Wait = WaitScreen(window, waitMessage, 70);
+
+% -----------------
+% Grating Threshold
+% -----------------
+% grating initializations
+nGratingTrials = 100;
+initSize = 1.5; % initial size of grating in degrees
+stepSize = 0.1; % grating step size in degrees
+nUp = 1; % number of wrong trials in a row to move up 
+nDown = 3; % number of correct trials in a row to move down
+cyclesPerGrating=4;
+
+% psychometric fit initialization
+pFitInit.t = 0.90;
+pFitInit.b = 1;
+pFitInit.a = 0.80;
+pFitInit.g = 0.50;
+
+% grating experiment
+GratingExp = Experiment();
+GratingBlock = GratingThreshTrial(window, windowRect, initSize, ... 
+                stepSize, nUp, nDown, cyclesPerGrating, stimTime);        
+WaitGrating = Wait;
+WaitGrating.displayText = ['Grating Threshold Experiment' WaitGrating.displayText]; 
+GratingExp.append_block("grating_0_wait", WaitGrating, 0);
+GratingExp.append_block("grating_1_block", GratingBlock, nGratingTrials);
+GratingExp.run();
+% save the full block
+save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
+% save the results table
+gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results_table.mat']);
+threshDiameter = GratingBlock.get_size_thresh(pFitInit, gratingResults);
 
 % -----------------
 % Build Modules
@@ -46,14 +82,13 @@ spacingProb = ones(1, 8) / 8;
 soaTime = 600/1000;
 LongBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
+LongBlock.diameter = threshDiamter;
 
 % Non-informative/Short SOA
 soaTime = 40/1000;
 ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
-
-waitMessage = '\n Press space bar to start';
-Wait = WaitScreen(window, waitMessage, 70); 
+ShortBlock.diameter = threshDiameter;
 
 % -----------------
 % Practice Trials

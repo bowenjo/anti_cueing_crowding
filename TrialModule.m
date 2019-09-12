@@ -33,6 +33,26 @@ classdef TrialModule < handle
             Screen('FillRect', self.window, 0, [fcv' fch'])
         end
         
+        function steps = staircase_step(self, steps, results)
+            % Find the next step in a nUp-nDown staircase
+            nSteps = length(steps);
+            if nSteps < self.nDown || nSteps < self.nUp
+                steps = [steps steps(nSteps)]; 
+            else
+                up = results((nSteps+1)-self.nUp:nSteps);
+                stepsUp = steps((nSteps+1)-self.nUp:nSteps);
+                down = results((nSteps+1)-self.nDown:nSteps);
+                stepsDown = steps((nSteps+1)-self.nDown:nSteps);
+                if sum(up) == 0 && all(diff(stepsUp)==0)
+                    steps = [steps (steps(nSteps) + self.stepSize)];
+                elseif sum(down) == self.nDown && all(diff(stepsDown)==0)
+                    steps = [steps (steps(nSteps) - self.stepSize)];
+                else
+                    steps = [steps steps(nSteps)];
+                end
+            end   
+        end
+        
         function init_eyelink(self, expName, edfFile)
             % initialize for given window
             self.el=EyelinkInitDefaults(self.window);

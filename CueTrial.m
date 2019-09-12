@@ -31,6 +31,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             %CueRects Construct an instance of this class
             self = self@TrialModule(window, windowRect);
             self = self@CueTrialParams();
+            self.set_position_params()
             
             % data randomization information
             self.cuedLocProb = cuedLocProb;
