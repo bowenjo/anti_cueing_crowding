@@ -82,7 +82,7 @@ threshDiameter = GratingBlock.get_size_thresh(pFitInit, gratingResults);
 soaTime = 600/1000;
 LongBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
-LongBlock.diameter = threshDiamter;
+LongBlock.diameter = threshDiameter;
 
 % Non-informative/Short SOA
 soaTime = 40/1000;
@@ -90,6 +90,7 @@ ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 ShortBlock.diameter = threshDiameter;
 
+return
 % -----------------
 % Practice Trials
 % -----------------
