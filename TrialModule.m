@@ -28,9 +28,9 @@ classdef TrialModule < handle
         
         function draw_fixation(self)
             % draws a fixation cross in the center of the screen
-            fcv = CenterRectOnPoint([0 0 2 20].*2, self.xCenter, self.yCenter);
-            fch = CenterRectOnPoint([0 0 20 2].*2, self.xCenter, self.yCenter);
-            Screen('FillRect', self.window, 0, [fcv' fch'])
+            fcv = CenterRectOnPoint([0 0 1 10].*2, self.xCenter, self.yCenter);
+            fch = CenterRectOnPoint([0 0 10 1].*2, self.xCenter, self.yCenter);
+            Screen('FillRect', self.window, [0 0 0], [fcv' fch'])
         end
         
         function steps = staircase_step(self, steps, results)
@@ -39,10 +39,13 @@ classdef TrialModule < handle
             if nSteps < self.nDown || nSteps < self.nUp
                 steps = [steps steps(nSteps)]; 
             else
+                % nUp-last trial correct responses 
                 up = results((nSteps+1)-self.nUp:nSteps);
                 stepsUp = steps((nSteps+1)-self.nUp:nSteps);
+                %nDown-last trial correct responses
                 down = results((nSteps+1)-self.nDown:nSteps);
                 stepsDown = steps((nSteps+1)-self.nDown:nSteps);
+                % Check if next step is move up or down
                 if sum(up) == 0 && all(diff(stepsUp)==0)
                     steps = [steps (steps(nSteps) + self.stepSize)];
                 elseif sum(down) == self.nDown && all(diff(stepsDown)==0)
@@ -82,7 +85,7 @@ classdef TrialModule < handle
             % start recording
             Eyelink('startrecording');
             % allow some synch time
-            WaitSecs(0.1);
+%             WaitSecs(0.1);
             Eyelink('Message', 'SYNCTIME');	
             % check recording
             err=Eyelink('checkrecording'); 
@@ -97,11 +100,13 @@ classdef TrialModule < handle
             if trialok
                 if Eyelink('isconnected') == self.el.dummyconnected % if in dummy mode
                     ShowCursor;
+                else
+                    HideCursor;
                 end
                 Screen('Flip', self.window); 
                 self.draw_fixation()
                 Eyelink('Message', 'FIXATION_CROSS');
-                WaitSecs(0.6); % allow 600 ms to direct attention to the cross
+%                 WaitSecs(0.6); % allow 600 ms to direct attention to the cross
 
                 % trail recalibration
                 MAX_CHECK = 3; % check 3 times for fixation
