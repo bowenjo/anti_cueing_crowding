@@ -26,11 +26,11 @@ classdef TrialModule < handle
             self.expDesign = containers.Map();
         end
         
-        function draw_fixation(self)
+        function draw_fixation(self, color)
             % draws a fixation cross in the center of the screen
             fcv = CenterRectOnPoint([0 0 1 10].*2, self.xCenter, self.yCenter);
             fch = CenterRectOnPoint([0 0 10 1].*2, self.xCenter, self.yCenter);
-            Screen('FillRect', self.window, [0 0 0], [fcv' fch'])
+            Screen('FillRect', self.window, color, [fcv' fch'])
         end
         
         function steps = staircase_step(self, steps, results)
@@ -104,7 +104,7 @@ classdef TrialModule < handle
                     HideCursor;
                 end
                 Screen('Flip', self.window); 
-                self.draw_fixation()
+                self.draw_fixation(0)
                 Eyelink('Message', 'FIXATION_CROSS');
 %                 WaitSecs(0.6); % allow 600 ms to direct attention to the cross
 
@@ -114,7 +114,7 @@ classdef TrialModule < handle
                 fix = 1;
                 while fix~=1 % if there is no fixation, check for fixation
                     ncheck = ncheck + 1; 
-                    self.draw_fixation()
+                    self.draw_fixation(0)
                     Screen('Flip', self.window);
                     Eyelink('message', 'FIXATION_CROSS');
                     fix = check_fix(self.el, self.fixLoc);	
@@ -122,7 +122,7 @@ classdef TrialModule < handle
                     if fix == 0 && ncheck < MAX_CHECK
                         Screen('Flip', self.window);
                         WaitSecs(1.2);
-                        self.draw_fixation()
+                        self.draw_fixation(0)
                         Screen('Flip', self.window);
                         WaitSecs(0.6);
                     elseif fix == 0 && ncheck == MAX_CHECK 
