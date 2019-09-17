@@ -64,12 +64,12 @@ WaitGrating = Wait;
 WaitGrating.displayText = ['Grating Threshold Experiment' WaitGrating.displayText]; 
 GratingExp.append_block("grating_0_wait", WaitGrating, 0);
 GratingExp.append_block("grating_1_block", GratingBlock, nGratingTrials);
-% GratingExp.run();
+GratingExp.run();
 % save the full block
-% save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
+save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
 % save the results table
-% gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results.mat'], []);
-threshDiameter = 1;% GratingBlock.get_size_thresh(pFitInit, gratingResults);
+gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results.mat'], []);
+threshDiameter = GratingBlock.get_size_thresh(pFitInit, gratingResults);
 
 % all spacings 
 spacingChoices = [Inf linspace(threshDiameter, 2.2, 7)];
