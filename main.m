@@ -22,7 +22,7 @@ addpath(analysisPath)
 nTotalTrials = 960;
 nTrialsPerBlock = 120;
 nBlocks = nTotalTrials/nTrialsPerBlock;
-isiTime = 1; % pre-cue time
+isiTime = 1.2; % pre-cue time
 cueTime = 40/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
 cuedLocProb = [.5 .5]; % probability of cue location
@@ -35,10 +35,6 @@ mkdir(['results/' sessionNumber]);
 % open ptb window
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 
-% all spacings 
-spacingChoices = [Inf 1.25:1/3:3.25];
-spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
-
 % base wait screen
 waitMessage = '\n Press space bar to start';
 Wait = WaitScreen(window, waitMessage, 70);
@@ -47,7 +43,7 @@ Wait = WaitScreen(window, waitMessage, 70);
 % Grating Threshold
 % -----------------
 % grating initializations
-nGratingTrials = 100;
+nGratingTrials = 50;
 initSize = 1.5; % initial size of grating in degrees
 stepSize = 0.1; % grating step size in degrees
 nUp = 1; % number of wrong trials in a row to move up 
@@ -57,7 +53,7 @@ cyclesPerGrating=4;
 % psychometric fit initialization
 pFitInit.t = 0.90;
 pFitInit.b = 1;
-pFitInit.a = 0.80;
+pFitInit.a = 0.95;
 pFitInit.g = 0.50;
 
 % grating experiment
@@ -68,13 +64,16 @@ WaitGrating = Wait;
 WaitGrating.displayText = ['Grating Threshold Experiment' WaitGrating.displayText]; 
 GratingExp.append_block("grating_0_wait", WaitGrating, 0);
 GratingExp.append_block("grating_1_block", GratingBlock, nGratingTrials);
-GratingExp.run();
+% GratingExp.run();
 % save the full block
-save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
+% save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
 % save the results table
-gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results_table.mat']);
-threshDiameter = GratingBlock.get_size_thresh(pFitInit, gratingResults);
+% gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results.mat'], []);
+threshDiameter = 1;% GratingBlock.get_size_thresh(pFitInit, gratingResults);
 
+% all spacings 
+spacingChoices = [Inf linspace(threshDiameter, 2.2, 7)];
+spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
 % -----------------
 % Build Modules
 % -----------------
@@ -83,14 +82,16 @@ soaTime = 600/1000;
 LongBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 LongBlock.diameter = threshDiameter;
+LongBlock.spatialFrequency = cyclesPerGrating/threshDiameter;
 
 % Non-informative/Short SOA
 soaTime = 40/1000;
 ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
 ShortBlock.diameter = threshDiameter;
+ShortBlock.spatialFrequency = cyclesPerGrating/threshDiameter;
 
-return
+% return
 % -----------------
 % Practice Trials
 % -----------------
@@ -107,8 +108,8 @@ blockLabels = string(1:nBlocks);
 soaChoices = random_sample(nBlocks, [0.5 0.5], [0 1], false);
 for i = 1:nBlocks
     label = blockLabels(i);
-    waitLabel = label + "_0_wait";
-    blockLabel = label + "_1_block";
+    waitLabel = "wait_" + label;
+    blockLabel = "block_" + label;
     % add wait message screen
     WaitBlock = Wait;
     WaitBlock.displayText = [char(string(i)) '/' char(string(nBlocks)) WaitBlock.displayText];
@@ -122,11 +123,12 @@ for i = 1:nBlocks
 end
 % run the experiment
 Exp.run()
+sca;
 % save the full experiment 
 save(['results/' sessionNumber '/Experiment.mat'], 'Exp')
 % save the results in a readible format
-results = Exp.save_run(['results/' sessionNumber '/results_table.mat']);
-sca;
+results = Exp.save_run(['results/' sessionNumber '/experiment_results.mat'], []);
+
 
 
 

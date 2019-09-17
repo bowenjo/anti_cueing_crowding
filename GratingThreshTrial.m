@@ -25,27 +25,25 @@ classdef GratingThreshTrial < CueTrial
         end
         
         function set_grating_sizes(self)
-            self.expDesign('grating_size') = [self.initSize];
+            self.expDesign.grating_size = [self.initSize];
         end
         
         function [stimuli, dests] = make_grating_stimuli(self, idx, rectIdx)
-            sizes = self.expDesign('grating_size');
-            self.diameter = sizes(idx);
+            self.diameter = self.expDesign.grating_size(idx);
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
             [dests, stimuli] = self.make_stimuli(idx, rectIdx);
         end
             
         
-        function forward(self, idx, vbl, nTrials)
+        function vbl = forward(self, idx, vbl, nTrials)
             % set the grating sizes before the first trial
             if idx == 1
                 self.set_grating_sizes()
             else
-                targetKey = self.expDesign('T') == 45;
-                correctTrial = self.results(1,:) == targetKey;
+                correctTrial = self.expDesign.T == self.expDesign.response;
                 % set the next step in the staircase
-                self.expDesign('grating_size') = self.staircase_step(...
-                    self.expDesign('grating_size'), correctTrial);
+                self.expDesign.grating_size = self.staircase_step(...
+                    self.expDesign.grating_size, correctTrial);
             end
             
             [~, placeIdx] = self.get_cue(idx);
@@ -76,28 +74,24 @@ classdef GratingThreshTrial < CueTrial
 
             % append the response data
             fix = mean(fixationChecks == 1);
-            self.results(1, idx) = rsp;
-            self.results(2, idx) = rt;
-            self.results(3, idx) = fix;
+            self.expDesign.response(idx) = rsp;
+            self.expDesign.RT(idx) = rt;
+            self.expDesign.fix_check(idx) = fix;
             Screen('Close', stimuli)     
         end
         
-        function [updatedResults, keys] = dump_results_info(self, currentResults)
-            keys = {'rsp_key'; 'RT'; 'fix_check'; 'target_key'; 'grating_size'};            
-            newResults = self.results;
-            newResults(4,:) = self.expDesign('T') == 45;
-            newResults(5,:) = self.expDesign('grating_size');
-            
-            updatedResults = [currentResults newResults];
+        function [keys] = dump_results_info(self)
+            self.expDesign.correct = self.expDesign.response == self.expDesign.T;
+            keys = {'response', 'RT', 'fix_check', 'T', 'grating_size', 'correct'};            
         end  
         
-        function threshSize = get_size_thresh(self, pInit, resultsTable)
-            accuracyTable = analyze_results(resultsTable, [], []);
-            accuracy = accuracyTable.Variables;
-            
+        function threshSize = get_size_thresh(self, pInit, resultsStruct)
+            accuracy = analyze_results(resultsStruct, 'grating_size', ...
+                {'correct'}, {}, []);
+           
             % make the results structure
-            results.x = accuracy(:,1);
-            results.y = accuracy(:,2);
+            results.x = accuracy.grating_size;
+            results.y = accuracy.correct;
             
             % fit psychometric function to find theshold
             variables = {'t', 'b'};
