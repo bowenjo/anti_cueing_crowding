@@ -4,6 +4,11 @@ analysisPath = [pwd '/analysis'];
 addpath(utilsPath)
 addpath(analysisPath)
 
+%% all scores
+all = analyze_results(results, 'spacing', {'correct'}, {} [])
+scatter(all.spacing, all.correct);
+
+
 %% plot valid-long vs invalid-long
 validLong = analyze_results(results, 'spacing', {'correct'}, ...
     {'soa_time', 'valid'}, [.6, 1]);
