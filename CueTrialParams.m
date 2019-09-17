@@ -80,7 +80,7 @@ classdef CueTrialParams < handle
             self.flankerOrientProb = ones(1, 180)/180;
             
             self.flankerStyle = 't';   
-            self.nFlankers = 1;
+            self.nFlankers = 2;
             
             if self.flankerStyle == 't' || self.flankerStyle == 'r'
                 self.totalNumFlankers = self.nFlankers*2;
