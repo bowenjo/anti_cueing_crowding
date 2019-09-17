@@ -1,4 +1,4 @@
-classdef Experiment
+classdef Experiment < handle
     %Experiment: Module for running experiments
     %   Methods:
     %   1) append_block
@@ -10,14 +10,14 @@ classdef Experiment
     % TODO: convert all containers.Map()/tables/results matrices to be structures
     
     properties
-    blocks % containers.Map() - blocks of the experiment
-    nTrialTracker % containers.Map() - the number of trials in each block
+    blocks % struct - blocks of the experiment
+    nTrialTracker % struct - the number of trials in each block
     end
     
     methods
         function self = Experiment()
-            self.blocks = containers.Map();
-            self.nTrialTracker = containers.Map();
+            self.blocks = struct;
+            self.nTrialTracker = struct;
         end
         
         function append_block(self, index, Module, nTrials)
@@ -26,32 +26,48 @@ classdef Experiment
             %   Module - MatLab class - the block module containing all the
             %       design information for the block of trials
             %   nTrials - int - the number of trials to run the block
-            self.blocks(index) = Module;
-            self.nTrialTracker(index) = nTrials;
+            self.blocks.(index) = Module;
+            self.nTrialTracker.(index) = nTrials;
         end
         
         function run(self)
-            blockKeys = keys(self.blocks);
-            for i = 1:length(blockKeys)
-                key = blockKeys{i};
-                block = self.blocks(key);
-                nTrials = self.nTrialTracker(key);
+            for key = fields(self.blocks)'
+                block = self.blocks.(string(key));
+                nTrials = self.nTrialTracker.(string(key));
                 block.run(nTrials, key);
             end
             Eyelink('StopRecording');
         end
         
-        function resultsTable = save_run(self, file)
-            blockKeys = keys(self.blocks);
-            Trial = [];
-            for i = 1:length(blockKeys)
-                key = blockKeys{i};
-                block = self.blocks(key);
-                [Trial, resultKeys] = block.dump_results_info(Trial);
+        function results = save_run(self, file, blockIndices)
+            % dumps the results for each block in blockIndices
+            % into a single results structure
+            results = struct;
+            
+            % dump all results if no indices are given
+            if isempty(blockIndices)
+                blockIndices = fields(self.blocks)';
+            end
+                
+            for blockIndex = blockIndices
+                block = self.blocks.(string(blockIndex));
+                keys = block.dump_results_info();
+                if ~isempty(keys)
+                    % assign the results structure the correct fields
+                    if isempty(fields(results))
+                        for key = keys
+                            results.(string(key)) = [];
+                        end
+                    end
+                    % append the block results
+                    for key = keys
+                        results.(string(key)) = ...
+                            [results.(string(key)) block.expDesign.(string(key))];
+                    end
+                end
             end
             
-            resultsTable = array2table(Trial, 'RowNames', resultKeys);
-            save(file, 'resultsTable')
+            save(file, 'results')
         end
     end
 end

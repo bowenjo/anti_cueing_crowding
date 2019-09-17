@@ -58,23 +58,22 @@ classdef CueTrial < TrialModule & CueTrialParams
         function set_exp_design(self, nTrials) 
             % Sets and randomizes cue and stimulus presentation info for
             % each trial
+            
             % cue locations for the each trial
-            self.expDesign('cue_loc') = random_sample(nTrials, ...
+            self.expDesign.cue_loc = random_sample(nTrials, ...
                 self.cuedLocProb, 1:self.nLocs, false);
             
             % orientations
             % target orientation
-            self.expDesign('T') = random_sample(nTrials,...
+            self.expDesign.T = random_sample(nTrials,...
                     self.targetOrientProb, self.targetOrientChoice, false);
             % flanker orientations for each trial
             for key = self.flankerKeys  
-               %self.expDesign(char(key)) = random_sample(nTrials,...
-               %    self.flankerOrientProb, self.flankerOrientChoice);
                flankerChoices = randi([1, length(self.flankerOrientChoice)], 1, nTrials);
-               self.expDesign(char(key)) = self.flankerOrientChoice(flankerChoices);
+               self.expDesign.(string(key)) = self.flankerOrientChoice(flankerChoices);
             end
             
-            % choose validity dpendent on spacing
+            % choose validity dependent on spacing
             % target-flanker spacing for each trial
             spacingOrdered = random_sample(nTrials,...
                 self.spacingProb, self.spacingChoice, true);
@@ -87,14 +86,14 @@ classdef CueTrial < TrialModule & CueTrialParams
                 validOrdered = [validOrdered validPerSpacing];
             end
             permIndices = randperm(length(spacingOrdered));
-            self.expDesign('spacing') = spacingOrdered(permIndices);
-            self.expDesign('valid') = validOrdered(permIndices);
+            self.expDesign.spacing = spacingOrdered(permIndices);
+            self.expDesign.valid = validOrdered(permIndices);
+            
+            % initialize result fields
+            for key = {'response', 'RT', 'fix_check'}
+                self.expDesign.(string(key)) = nan(1,nTrials);
+            end
 
-        end
-        
-        function set_results_matrix(self, nTrials)
-            nMetrics = 3; % response key, fixation, and reaction time
-            self.results = nan(nMetrics, nTrials);
         end
         
         function [cuedLoc, postLoc] = get_cue(self, idx)
@@ -102,12 +101,11 @@ classdef CueTrial < TrialModule & CueTrialParams
             % trial depending on if it is a valid or non-valid trial
             
             % get the cued rectangle index
-            cuedLocs = self.expDesign('cue_loc');
-            cuedLoc = cuedLocs(idx);
+            cuedLoc = self.expDesign.cue_loc(idx);
             % pick post cue rect given validity information
             oppLoc = self.postCuedLoc(cuedLoc);
-            validity = self.expDesign('valid');
-            if validity(idx)
+            
+            if self.expDesign.valid(idx)
                 postLoc = oppLoc; % if valid, display in opposite rect
             else
                 postLoc = cuedLoc; % otherwise, display in same rect
@@ -178,22 +176,20 @@ classdef CueTrial < TrialModule & CueTrialParams
             trialOrientations = zeros(1, self.totalNumFlankers+1);
             
             % get target orientation for the trial;
-            tOrientations = self.expDesign('T');
-            trialOrientations(1) = tOrientations(idx);
+            trialOrientations(1) = self.expDesign.T(idx);
             
             % get the flanker orientations for the trial
             for i = 1:self.totalNumFlankers
-                fOrientations = self.expDesign(char(self.flankerKeys(i)));
-                trialOrientations(i+1) = fOrientations(idx);
+                trialOrientations(i+1) = self.expDesign.(...
+                    string(self.flankerKeys(i)))(idx);
             end
             stimuli = make_grating(self.window, trialOrientations,...
                 self.diameter, self.spatialFrequency, self.contrast, ...
                 self.subjectDistance, self.physicalWidthScreen, self.xRes);
             
             % get the spacing for the trial
-            s = self.expDesign('spacing'); % spacing in DVA
             sTrial = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-                self.xRes, s(idx)); % get the spaincing in pixels
+                self.xRes, self.expDesign.spacing(idx)); % get the spaincing in pixels
             
             % get the destinations for the trial
             dests = zeros(self.totalNumFlankers+1, 4);
@@ -246,10 +242,10 @@ classdef CueTrial < TrialModule & CueTrialParams
             while respToBeMade
                 [~, secs, keyCode] = KbCheck;
                 if keyCode(self.leftKey)
-                    responseKey = 0;
+                    responseKey = self.targetOrientChoice(1);
                     respToBeMade = false;
                 elseif keyCode(self.rightKey)
-                    responseKey = 1;
+                    responseKey = self.targetOrientChoice(2);
                     respToBeMade = false;
                 elseif keyCode(self.escapeKey)
                     Eyelink('StopRecording')
@@ -261,7 +257,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             responseTime = secs - timeStart;
         end
         
-        function forward(self, idx, vbl, nTrials)
+        function vbl = forward(self, idx, vbl, nTrials)
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
@@ -300,28 +296,23 @@ classdef CueTrial < TrialModule & CueTrialParams
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
 
-            % append the resonse data
+            % append the response data
             fix = mean(fixationChecks == 1);
-            self.results(1, idx) = rsp;
-            self.results(2, idx) = rt;
-            self.results(3, idx) = fix;  
+            self.expDesign.response(idx) = rsp;
+            self.expDesign.RT(idx) = rt;
+            self.expDesign.fix_check(idx) = fix;  
             Screen('Close', stimuli)
         end 
         
-        function [updatedResults, keys] = dump_results_info(self, currentResults)
-            keys = {'rsp_key'; 'RT'; 'fix_check'; 'target_key'; 'spacing'; ...
-                    'valid'; 'valid_prob'; 'soa_time'};
-            nTrials = size(self.results);
-            nTrials = nTrials(2);
+        function [keys] = dump_results_info(self)   
+            nTrials = length(self.expDesign.response);
+            self.expDesign.soa_time = repmat(self.soaTime, 1, nTrials);
+            self.expDesign.correct = self.expDesign.response == self.expDesign.T;
             
-            newResults = self.results;
-            newResults(4,:) = self.expDesign('T') == 45;
-            newResults(5,:) = self.expDesign('spacing');
-            newResults(6,:) = self.expDesign('valid');
-            newResults(7,:) = ones(1, nTrials) .* self.cueValidProb;
-            newResults(8,:) = ones(1, nTrials) .* (self.soaTime);
-            
-            updatedResults = [currentResults newResults];
+            % dump results for block into the rest of the blocks
+            keys = {'response', 'RT', 'fix_check', 'T', 'spacing', ...
+                    'valid', 'soa_time', 'correct'};
+
         end     
         
     end

@@ -74,7 +74,7 @@ classdef CueTrialParams < handle
             self.contrast = 1;
             
             % stimuli info
-            self.targetOrientChoice = [45 135];
+            self.targetOrientChoice = [135 45];
             self.targetOrientProb = [.5 .5];
             self.flankerOrientChoice = [1:35 55:125 145:180];
             self.flankerOrientProb = ones(1, 180)/180;

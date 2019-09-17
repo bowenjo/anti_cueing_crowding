@@ -13,7 +13,7 @@ classdef TrialModule < handle
         xRes % screen resolution in the x-dimension 
         yRes % screen resolution in the y-dimension
         el % the eyelink structure
-        expDesign % the experiment design container
+        expDesign % the experiment design structure
         results % the results matrix
     end
     
@@ -23,7 +23,7 @@ classdef TrialModule < handle
             self.window = window;
             [self.xCenter, self.yCenter] = RectCenter(windowRect);
             [self.xRes, self.yRes] = Screen('WindowSize', window);
-            self.expDesign = containers.Map();
+            self.expDesign = struct;
         end
         
         function draw_fixation(self, color)
@@ -85,7 +85,6 @@ classdef TrialModule < handle
             % start recording
             Eyelink('startrecording');
             % allow some synch time
-%             WaitSecs(0.1);
             Eyelink('Message', 'SYNCTIME');	
             % check recording
             err=Eyelink('checkrecording'); 
@@ -103,10 +102,7 @@ classdef TrialModule < handle
                 else
                     HideCursor;
                 end
-                Screen('Flip', self.window); 
-                self.draw_fixation(0)
                 Eyelink('Message', 'FIXATION_CROSS');
-%                 WaitSecs(0.6); % allow 600 ms to direct attention to the cross
 
                 % trail recalibration
                 MAX_CHECK = 3; % check 3 times for fixation
@@ -146,14 +142,12 @@ classdef TrialModule < handle
         function [] = run(self, nTrials, name)
             % set the experimental design
             self.set_exp_design(nTrials);
-            % set the results matrix
-            self.set_results_matrix(nTrials);
             % initialize eyelink
             self.init_eyelink(name, [name '.edf'])
             % run the design for each trial
             vbl = Screen('Flip', self.window);
             for i = 1:nTrials
-                self.forward(i, vbl, nTrials);
+                vbl = self.forward(i, vbl, nTrials);
             end
         end
     end

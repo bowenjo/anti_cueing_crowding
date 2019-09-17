@@ -27,16 +27,15 @@ classdef WaitScreen
                 DrawFormattedText(self.window, [self.displayText], ... 
                     'center', 'center', 1);
                 Screen('Flip', self.window);
-                [keyIsDown, secs, keyCode] = KbCheck;
+                [~, ~, keyCode] = KbCheck;
                 if keyCode(exitKey)
                     wait = false;
                 end 
             end
         end
         
-        function [updatedResults, keys] = dump_results_info(self, currentResults)
-            updatedResults = currentResults;
-            keys = nan;
+        function [keys] = dump_results_info(self)
+           keys = {}; 
         end
     end
 end

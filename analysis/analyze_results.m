@@ -1,54 +1,46 @@
-function outputTable = analyze_results(resultsTable, filterIdx, filterValues)
-    % load in the results table and calculate accuracy and reaction time
-    % resultsTable row keys (i.e. filter indices):
-    %   1. resp key
-    %   2. RT
-    %   3. fix_check
-    %   4. target_key
-    %   5. spacing
-    %   6. valid
-    %   7. valid_prob
-    %   8. soa_time
-    %   9. correct
-    resultsMat = resultsTable.Variables;
+function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, filterValues)
+    % load in the results structure and calculate mean yKey values per xKey
+    % Paramaters
+    %   results - struct - results structure with fields 
+    %   xKey - string - independent variable field name
+    %   yKeys - cell array - dependent variables field names
+    %   filterKeys - cell array - results structure field name to filter
+    %   filterValues - array - corresponding field values to filter by
     
-    % find the accuracy values
-    resultsMat(9, :) = resultsMat(1,:) == resultsMat(4,:);
-    % get the unique spacings
-    spacing = unique(resultsMat(5, :));
-
-    col = 1;
-    for sp = spacing
-        % check if trial was correct
-        % filter by spacing and extra
-        idxCorrect = [5 filterIdx];
-        valueCorrect = [sp filterValues];
-        spCorrect = resultsMat(9, filter_by_index(idxCorrect, valueCorrect, resultsMat));
-        
-        % check trail reaction times
-        % filter by spacing, correct and extra
-        idxRT = [5 9 filterIdx];
-        valueRT = [sp 1 filterValues];
-        spRT = resultsMat(2, filter_by_index(idxRT, valueRT, resultsMat));
-         
-        % collect and compute accuracy
-        accuracy(col) = mean(spCorrect);
-        reaction_time(col) = mean(spRT);
-        col = col+1;
+    nFilters = length(filterKeys);
+    xValues = unique(results.(string(xKey)));
+    
+    % initialize the anlyzed results structure
+    analyzedResults = struct;
+    analyzedResults.(string(xKey)) = xValues;
+    for yKey = yKeys
+        analyzedResults.(string(yKey)) = [];
     end
     
-    outputTable = table(spacing', accuracy', reaction_time', ...
-        'VariableNames', {'Spacing', 'Accuracy', 'Reaction_Time'});
-%     save('results/work_spacing_2flank_tang', 'outputTable')
+    % loop over the independent vairable values
+    for i = 1:length(xValues)
+        for yKey = yKeys
+            % get the dependent variable values
+            yValues = results.(string(yKey));
+            % set the filter keys and values
+            fKeys = filterKeys;
+            fValues = filterValues;
+            fKeys(nFilters+1) = {xKey};
+            fValues(nFilters+1) = xValues(i);
+            % filter by keys and values
+            filterIndices = filter_by_index(results, fKeys, fValues);
+            analyzedResults.(string(yKey)) = ...
+                [analyzedResults.(string(yKey)) mean(yValues(filterIndices))]; 
+        end
+    end
+
 end
 
-function filter_indices = filter_by_index(resIndices, values, resultsMat)
-    filter_indices = ones(1, length(resultsMat));
-    for i = 1:length(resIndices)
-        idx = resIndices(i);
-        value = values(i);
-        value_filter_indices = resultsMat(idx,:) == value;
-        filter_indices = filter_indices .* value_filter_indices;
+function filterIndices = filter_by_index(results, filterKeys, filterValues)
+    filterIndices = ones(1, length(results.(string(filterKeys(1)))));
+    for i = 1:length(filterKeys)
+        valueFilterIndices =  results.(string(filterKeys(i)))== filterValues(i);
+        filterIndices = filterIndices .* valueFilterIndices;
     end
-    filter_indices = logical(filter_indices);
+    filterIndices = logical(filterIndices);
 end
