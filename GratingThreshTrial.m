@@ -53,13 +53,13 @@ classdef GratingThreshTrial < CueTrial
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
-                self.draw_fixation(0);
+                self.draw_fixation([.40,0,0]);
                 self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
-                self.draw_fixation(0)
+                self.draw_fixation([.40,0,0])
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
                 fixationChecks(i) = check_fix(self.el, self.fixLoc);
