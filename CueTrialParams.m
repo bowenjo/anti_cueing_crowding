@@ -62,10 +62,10 @@ classdef CueTrialParams < handle
 %             self.baseRect = [0 0 widthBox heightBox];
 
             % cue information
-            self.cueLum = WhiteIndex(self.screenNumber);
-            self.nonCueLum = BlackIndex(self.screenNumber);
-            self.cueWidth = 6;
-            self.nonCueWidth = 2;
+            self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
+            self.nonCueLum = (1/4)*WhiteIndex(self.screenNumber);
+            self.cueWidth = 3;
+            self.nonCueWidth = 1;
             self.postCuedLoc = [2 1];
             
             % grating information
