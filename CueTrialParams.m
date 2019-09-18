@@ -62,10 +62,10 @@ classdef CueTrialParams < handle
 %             self.baseRect = [0 0 widthBox heightBox];
 
             % cue information
-            self.cueLum = WhiteIndex(self.screenNumber);
-            self.nonCueLum = BlackIndex(self.screenNumber);
-            self.cueWidth = 6;
-            self.nonCueWidth = 2;
+            self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
+            self.nonCueLum = (1/4)*WhiteIndex(self.screenNumber);
+            self.cueWidth = 3;
+            self.nonCueWidth = 1;
             self.postCuedLoc = [2 1];
             
             % grating information
@@ -81,16 +81,6 @@ classdef CueTrialParams < handle
             
             self.flankerStyle = 't';   
             self.nFlankers = 2;
-            
-            if self.flankerStyle == 't' || self.flankerStyle == 'r'
-                self.totalNumFlankers = self.nFlankers*2;
-            elseif self.flankerStyle == 'b'
-                self.totalNumFlankers = self.nFlankers*4;
-            end
-            self.flankerKeys = {};
-            for i = 1:self.totalNumFlankers
-                self.flankerKeys(i) = {['F_' char(string(i))]};
-            end
             
             % response info
             self.escapeKey = KbName('ESCAPE');
@@ -120,6 +110,18 @@ classdef CueTrialParams < handle
                 yCoor = [-vls/2, vls/2, -vls/2, vls/2];
                 lines = [xCoor; yCoor];
                 self.vLines = [self.vLines lines];
+            end
+        end
+        
+        function set_flanker_params(self)
+            if self.flankerStyle == 't' || self.flankerStyle == 'r'
+                self.totalNumFlankers = self.nFlankers*2;
+            elseif self.flankerStyle == 'b'
+                self.totalNumFlankers = self.nFlankers*4;
+            end
+            self.flankerKeys = {};
+            for i = 1:self.totalNumFlankers
+                self.flankerKeys(i) = {['F_' char(string(i))]};
             end
         end
         

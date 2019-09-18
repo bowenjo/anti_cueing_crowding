@@ -31,7 +31,8 @@ classdef CueTrial < TrialModule & CueTrialParams
             %CueRects Construct an instance of this class
             self = self@TrialModule(window, windowRect);
             self = self@CueTrialParams();
-            self.set_position_params()
+            self.set_position_params();
+            self.set_flanker_params();
             
             % data randomization information
             self.cuedLocProb = cuedLocProb;
@@ -266,32 +267,32 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
-                self.draw_fixation(0);
+                self.draw_fixation(.25);
                 self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
             for i = 1:self.cueFrames
-                self.draw_fixation(0);
+                self.draw_fixation(.25);
                 self.cue_vlines(cueIndex);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
-                self.draw_fixation(0);
+                self.draw_fixation(.25);
                 self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
-                self.draw_fixation(0)
+                self.draw_fixation(.25)
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
                 fixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
-            self.draw_fixation(0)
+            self.draw_fixation(.25)
             self.cue_vlines(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
