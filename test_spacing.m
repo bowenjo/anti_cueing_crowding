@@ -20,11 +20,12 @@ addpath(analysisPath)
 % -----------------
 % fixed timing info
 nTrialsPerBlock = 120;
-isiTime = 2; % pre-cue time
+isiTime = 1.5; % pre-cue time
 cueTime = 40/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
+soaTime = 600/1000;
 cuedLocProb = [.5 .5]; % probability of cue location
-cueValidProb = .8;
+cueValidProb = 1;
 
 % Ask for session number 
 sessionNumber = input('Please enter session number ', 's');
@@ -76,30 +77,31 @@ spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
 % -----------------
 % Build Modules
 % -----------------
-% Informative/Long SOA
-soaTime = 600/1000;
-LongBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
+% Block with 1 flankers
+Block1 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
-LongBlock.diameter = threshDiameter;
-LongBlock.spatialFrequency = cyclesPerGrating/threshDiameter;
-
-% Non-informative/Short SOA
-soaTime = 40/1000;
-ShortBlock = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
+Block1.diameter = threshDiameter;
+Block1.spatialFrequency = cyclesPerGrating/threshDiameter;
+Block1.nFlankers = 1;
+Block1.set_flanker_params();
+% Block with 2 flankers
+Block2 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
     spacingProb, spacingChoices, isiTime, cueTime, soaTime, stimTime);
-ShortBlock.diameter = threshDiameter;
-ShortBlock.spatialFrequency = cyclesPerGrating/threshDiameter;
+Block2.diameter = threshDiameter;
+Block2.spatialFrequency = cyclesPerGrating/threshDiameter;
+Block2.nFlankers = 2;
+Block2.set_flanker_params();
 
 % ----------------
 % Test Spacing Experiment
 % ----------------
 Exp = Experiment();
-nFlankers = random_sample(2, [0.5 0.5], [1 2], false);
-for i = 1:length(nFlankers)
-    Exp.append_block("wait_"+string(i), Wait, 0)
-    LongBlock.nFlankers = nFlankers(i);
-    Exp.append_block("block_"+string(i), LongBlock, nTrialsPerBlock)
-end
+Exp.append_block("wait_1", Wait, 0)
+Exp.append_block("block_1", Block1, 12)
+Exp.append_block("wait_2", Wait, 0)
+Exp.append_block("block_2", Block2, 12)
+Wait.displayText = ["You're done! You've earned a cookie!"];
+Exp.append_block("wait_end", Wait, 0)
 % run the experiment
 Exp.run()
 sca;
