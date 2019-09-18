@@ -97,9 +97,9 @@ Block2.set_flanker_params();
 % ----------------
 Exp = Experiment();
 Exp.append_block("wait_1", Wait, 0)
-Exp.append_block("block_1", Block1, 12)
+Exp.append_block("block_1", Block1, nTrialsPerBlock)
 Exp.append_block("wait_2", Wait, 0)
-Exp.append_block("block_2", Block2, 12)
+Exp.append_block("block_2", Block2, nTrialsPerBlock)
 Wait.displayText = ["You're done! You've earned a cookie!"];
 Exp.append_block("wait_end", Wait, 0)
 % run the experiment
