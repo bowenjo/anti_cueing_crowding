@@ -45,6 +45,7 @@ classdef CueTrialParams < handle
         flankerStyle % char - the flanker style - options - 't', 'r', 'b'  
         flankerKeys % cell array - keys for the flankers
         totalNumFlankers % int - the total number of flankers
+        isHash % bool - true if flankers are hash
         
     end
     
@@ -66,7 +67,7 @@ classdef CueTrialParams < handle
             self.postCuedLoc = [2 1];
             
             % grating information
-            self.diameter = .50;
+            self.diameter = 1;
             self.spatialFrequency = 4/self.diameter;
             self.contrast = 1;
             
@@ -85,6 +86,7 @@ classdef CueTrialParams < handle
             
             self.flankerStyle = 't';   
             self.nFlankers = 1;
+            self.isHash = false; 
             
             % response info
             self.escapeKey = KbName('ESCAPE');

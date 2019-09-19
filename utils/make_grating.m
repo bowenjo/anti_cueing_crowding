@@ -1,5 +1,5 @@
 function [gratings] = make_grating(window, orientations, diameter, ...
-                                   spatialFrequency, michelsonContrast, ...
+                                   spatialFrequency, michelsonContrast, isHash,...
                                    subjectDistance, physicalWidth, resolution)
                                
     %Makes oriented grating for crowding experiments
@@ -37,13 +37,28 @@ function [gratings] = make_grating(window, orientations, diameter, ...
     % Generate display gratings from orientation
     gratings = zeros(1, length(orientations));
     for i = 1:length(orientations)
-        tiltInRadians = orientations(i) * pi / 180;
+        if ~isHash || i == 1
+            imageMatrix = make_grating_texture(orientations(i));
+        else
+            imageMatrix1 = make_grating_texture(orientations(i));
+            imageMatrix2 = make_grating_texture(orientations(i)+90);
+            imageMatrix = (imageMatrix1 + imageMatrix2)/2;
+        end
+        gratings(i) = Screen('MakeTexture', window, imageMatrix); 
+    end
+    
+    
+    
+    
+    function imageMatrix = make_grating_texture(orientation)
+        tiltInRadians = orientation * pi / 180;
         shift_x = cos(tiltInRadians) * radiansPerPixel;
         shift_y = sin(tiltInRadians) * radiansPerPixel;
         phase = pi/2;
         imageMatrix = (gray + absoluteDifferenceBetweenWhiteAndGray * ... 
             michelsonContrast * sin(shift_x*x + shift_y*y+phase).* circularMaskMatrix .* G_mask_rescaled);
-        gratings(i) = Screen('MakeTexture', window, imageMatrix); 
     end
+
 end
+
 
