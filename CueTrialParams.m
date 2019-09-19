@@ -66,15 +66,21 @@ classdef CueTrialParams < handle
             self.postCuedLoc = [2 1];
             
             % grating information
-            self.diameter = 1;
+            self.diameter = .50;
             self.spatialFrequency = 4/self.diameter;
             self.contrast = 1;
             
             % stimuli info
             self.stimType = "grating";
-            self.targetOrientChoice = [135 45];
+            
+            if self.stimType == "grating"
+                self.targetOrientChoice = [135 45];
+                self.flankerOrientChoice = [1:35 55:125 145:180];
+            elseif self.stimType == "rotated_t"
+                self.targetOrientChoice = [0 180];
+                self.flankerOrientChoice = [0 90 180 270];
+            end
             self.targetOrientProb = [.5 .5];
-            self.flankerOrientChoice = [0 90 180 270];%[1:35 55:125 145:180];
             self.flankerOrientProb = ones(1, 180)/180;
             
             self.flankerStyle = 't';   

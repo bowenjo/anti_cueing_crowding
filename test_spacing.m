@@ -42,10 +42,10 @@ Wait = WaitScreen(window, waitMessage, 70);
 % Grating Threshold
 % -----------------
 % grating initializations
-nGratingTrials = 150;
+nGratingTrials = 50;
 threshType="spacing";
 initSize = 4; % initial size of grating in degrees
-stepSize = .2; % grating step size in degrees
+stepSize = .5; % grating step size in degrees
 nUp = 1; % number of wrong trials in a row to move up 
 nDown = 3; % number of correct trials in a row to move down
 cyclesPerGrating=4;
@@ -64,12 +64,13 @@ WaitGrating = Wait;
 WaitGrating.displayText = ['Grating Threshold Experiment' WaitGrating.displayText]; 
 GratingExp.append_block("grating_wait_1", WaitGrating, 0);
 GratingExp.append_block("grating_block_1", GratingBlock, nGratingTrials);
-% GratingExp.run();
-% % save the full block
-% save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
-% % save the results table
-% gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results.mat'], []);
-threshDiameter = 1; %GratingBlock.get_size_thresh(pFitInit, gratingResults);
+GratingExp.run();
+% save the full block
+save(['results/' sessionNumber '/GratingThesholdExperiment.mat'], 'GratingExp')
+% save the results table
+gratingResults = GratingExp.save_run(['results/' sessionNumber '/grating_threshold_results.mat'], []);
+threshSpacing = GratingBlock.get_size_thresh(pFitInit, gratingResults);
+threshDiameter = 1; 
 
 % all spacings 
 spacingChoices = [Inf linspace(threshDiameter, 2.8, 11)];

@@ -55,6 +55,9 @@ classdef GratingThreshTrial < CueTrial
                 elseif self.threshType == "spacing"
                     self.expDesign.spacing = self.staircase_step(...
                         self.expDesign.spacing, correctTrial);
+                    % ensure targets don't overlap with flankers
+                    self.expDesign.spacing(idx) = max(self.diameter, ...
+                        self.expDesign.spacing(idx));
                 end
             end
             
