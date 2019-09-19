@@ -42,9 +42,10 @@ Wait = WaitScreen(window, waitMessage, 70);
 % Grating Threshold
 % -----------------
 % grating initializations
-nGratingTrials = 100;
-initSize = 1.5; % initial size of grating in degrees
-stepSize = 0.1; % grating step size in degrees
+nGratingTrials = 150;
+threshType="spacing";
+initSize = 4; % initial size of grating in degrees
+stepSize = .2; % grating step size in degrees
 nUp = 1; % number of wrong trials in a row to move up 
 nDown = 3; % number of correct trials in a row to move down
 cyclesPerGrating=4;
@@ -57,7 +58,7 @@ pFitInit.g = 0.50;
 
 % grating experiment
 GratingExp = Experiment();
-GratingBlock = GratingThreshTrial(window, windowRect, initSize, ... 
+GratingBlock = GratingThreshTrial(window, windowRect, threshType, initSize, ... 
                 stepSize, nUp, nDown, cyclesPerGrating, stimTime);        
 WaitGrating = Wait;
 WaitGrating.displayText = ['Grating Threshold Experiment' WaitGrating.displayText]; 
