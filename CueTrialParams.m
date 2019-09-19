@@ -36,6 +36,7 @@ classdef CueTrialParams < handle
         physicalWidthScreen % physical width of screen in cm
         
         % stimuli info
+        stimType % str - stimulus type
         targetOrientChoice % array - target orientation choices in degrees
         targetOrientProb % array - proportion to choose choices
         flankerOrientChoice % array - flanker orientation choices in degrees
@@ -44,6 +45,7 @@ classdef CueTrialParams < handle
         flankerStyle % char - the flanker style - options - 't', 'r', 'b'  
         flankerKeys % cell array - keys for the flankers
         totalNumFlankers % int - the total number of flankers
+        
     end
     
     methods
@@ -52,14 +54,9 @@ classdef CueTrialParams < handle
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
             
+            % scree setup info
             self.subjectDistance = 49; 
             self.physicalWidthScreen = 43; 
-            
-%             widthBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-%                 self.xRes, 4.5);
-%             heightBox = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
-%                 self.xRes, 15.5);
-%             self.baseRect = [0 0 widthBox heightBox];
 
             % cue information
             self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
@@ -74,13 +71,14 @@ classdef CueTrialParams < handle
             self.contrast = 1;
             
             % stimuli info
+            self.stimType = "grating";
             self.targetOrientChoice = [135 45];
             self.targetOrientProb = [.5 .5];
-            self.flankerOrientChoice = [1:35 55:125 145:180];
+            self.flankerOrientChoice = [0 90 180 270];%[1:35 55:125 145:180];
             self.flankerOrientProb = ones(1, 180)/180;
             
             self.flankerStyle = 't';   
-            self.nFlankers = 2;
+            self.nFlankers = 1;
             
             % response info
             self.escapeKey = KbName('ESCAPE');

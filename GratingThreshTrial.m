@@ -3,6 +3,7 @@ classdef GratingThreshTrial < CueTrial
     % at some eccentricity. Implements a nUp-nDown staircase
     
     properties
+        threshType
         initSize
         stepSize
         nUp
@@ -11,12 +12,14 @@ classdef GratingThreshTrial < CueTrial
     end
     
     methods
-        function self = GratingThreshTrial(window, windowRect, initSize, ... 
-                stepSize, nUp, nDown, cyclesPerGrating, stimTime)
+        function self = GratingThreshTrial(window, windowRect, ...
+                threshType, initSize, stepSize, nUp, nDown, ...
+                cyclesPerGrating, stimTime)
             % Construct an instance of this class
             self = self@CueTrial(window, windowRect, [0 1], ...
                 1, [1], [Inf], 1, 0, 0, stimTime);
             
+            self.threshType = threshType;
             self.initSize = initSize;
             self.stepSize = stepSize;
             self.nUp = nUp;
@@ -24,31 +27,45 @@ classdef GratingThreshTrial < CueTrial
             self.cyclesPerGrating = cyclesPerGrating;
         end
         
-        function set_grating_sizes(self)
-            self.expDesign.grating_size = [self.initSize];
+        function init_grating(self)
+            if self.threshType == "size"
+                self.expDesign.grating_size = [self.initSize];
+            elseif self.threshType == "spacing"
+                self.expDesign.spacing = [self.initSize];
+            end
         end
         
         function [stimuli, dests] = make_grating_stimuli(self, idx, rectIdx)
             self.diameter = self.expDesign.grating_size(idx);
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
-            [dests, stimuli] = self.make_stimuli(idx, rectIdx);
+            [stimuli, dests] = self.make_stimuli(idx, rectIdx);
         end
             
         
         function vbl = forward(self, idx, vbl, nTrials)
             % set the grating sizes before the first trial
             if idx == 1
-                self.set_grating_sizes()
+                self.init_grating()
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
                 % set the next step in the staircase
-                self.expDesign.grating_size = self.staircase_step(...
-                    self.expDesign.grating_size, correctTrial);
+                if self.threshType == "size"
+                    self.expDesign.grating_size = self.staircase_step(...
+                        self.expDesign.grating_size, correctTrial);
+                elseif self.threshType == "spacing"
+                    self.expDesign.spacing = self.staircase_step(...
+                        self.expDesign.spacing, correctTrial);
+                end
             end
             
             [~, placeIdx] = self.get_cue(idx);
-            [dests, stimuli] = self.make_grating_stimuli(idx, placeIdx);
-            self.set_position_params() % resets the vline params to fit new size
+            if self.threshType == "size"
+                [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
+                self.set_position_params() % resets the vline params to fit new size
+            elseif self.threshType == "spacing"
+                [stimuli, dests] = self.make_stimuli(idx, placeIdx);
+            end
+
             fixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
@@ -86,11 +103,18 @@ classdef GratingThreshTrial < CueTrial
         end  
         
         function threshSize = get_size_thresh(self, pInit, resultsStruct)
-            accuracy = analyze_results(resultsStruct, 'grating_size', ...
-                {'correct'}, {}, []);
-           
-            % make the results structure
-            results.x = accuracy.grating_size;
+            
+            if self.threshType == "size"
+                accuracy = analyze_results(resultsStruct, 'grating_size', ...
+                    {'correct'}, {}, []);
+                % make the results structure
+                results.x = accuracy.grating_size;
+            elseif self.threshType == "spacing"
+                accuracy = analyze_results(resultsStruct, 'spacing', ...
+                    {'correct'}, {}, []);
+                % make the results structure
+                results.x = accuracy.spacing;
+            end
             results.y = accuracy.correct;
             
             % fit psychometric function to find theshold
