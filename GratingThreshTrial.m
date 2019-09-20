@@ -102,7 +102,11 @@ classdef GratingThreshTrial < CueTrial
         
         function [keys] = dump_results_info(self)
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
-            keys = {'response', 'RT', 'fix_check', 'T', 'grating_size', 'correct'};            
+            if self.threshType == "size"
+                keys = {'response', 'RT', 'fix_check', 'T', 'grating_size', 'correct'}; 
+            elseif self.threshType == "spacing"
+                keys = {'response', 'RT', 'fix_check', 'T', 'spacing', 'correct'};
+            end
         end  
         
         function threshSize = get_size_thresh(self, pInit, resultsStruct)
