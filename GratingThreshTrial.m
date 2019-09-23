@@ -93,6 +93,7 @@ classdef GratingThreshTrial < CueTrial
         function [keys] = dump_results_info(self)
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
             keys = {'response', 'RT', 'fix_check', 'T', self.threshType, 'correct'};            
+
         end  
         
         function pFit = get_size_thresh(self, pInit, resultsStruct)
