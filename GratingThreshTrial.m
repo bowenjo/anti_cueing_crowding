@@ -45,7 +45,7 @@ classdef GratingThreshTrial < CueTrial
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
                 % set the next step in the staircase
-                self.expDesign.grating_size = self.staircase_step(...
+                self.expDesign.(string(self.threshType)) = self.staircase_step(...
                     self.expDesign.(string(self.threshType)), correctTrial);
                 
                 if self.threshType == "spacing"
@@ -56,20 +56,24 @@ classdef GratingThreshTrial < CueTrial
             end
             
             [~, placeIdx] = self.get_cue(idx);
-            [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
-            self.set_position_params() % resets the vline params to fit new size
+            if self.threshType == "grating_size"
+                [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
+                self.set_position_params() % resets the vline params to fit new size
+            elseif self.threshType == "spacing"
+                [stimuli, dests] = self.make_stimuli(idx, placeIdx);
+            end
 
             fixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
-                self.draw_fixation([.40,0,0]);
+                self.draw_fixation(.25);
                 self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
-                self.draw_fixation([.40,0,0])
+                self.draw_fixation(.25)
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
                 fixationChecks(i) = check_fix(self.el, self.fixLoc);
@@ -77,10 +81,14 @@ classdef GratingThreshTrial < CueTrial
             end
             
             % Response interval
-            self.draw_fixation([0 .40 0])
+            self.draw_fixation(.25)
             self.cue_vlines(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
+            
+            self.draw_fixation(0)
+            self.cue_vlines(0)
+            Screen('Flip', self.window, vbl+self.ifi/2);
 
             % append the response data
             fix = mean(fixationChecks == 1);
