@@ -28,11 +28,7 @@ classdef GratingThreshTrial < CueTrial
         end
         
         function init_grating(self)
-            if self.threshType == "size"
-                self.expDesign.grating_size = [self.initSize];
-            elseif self.threshType == "spacing"
-                self.expDesign.spacing = [self.initSize];
-            end
+            self.expDesign.(string(self.threshType)) = [self.initSize];
         end
         
         function [stimuli, dests] = make_grating_stimuli(self, idx, rectIdx)
@@ -49,12 +45,10 @@ classdef GratingThreshTrial < CueTrial
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
                 % set the next step in the staircase
-                if self.threshType == "size"
-                    self.expDesign.grating_size = self.staircase_step(...
-                        self.expDesign.grating_size, correctTrial);
-                elseif self.threshType == "spacing"
-                    self.expDesign.spacing = self.staircase_step(...
-                        self.expDesign.spacing, correctTrial);
+                self.expDesign.grating_size = self.staircase_step(...
+                    self.expDesign.(string(self.threshType)), correctTrial);
+                
+                if self.threshType == "spacing"
                     % ensure targets don't overlap with flankers
                     self.expDesign.spacing(idx) = max(self.diameter, ...
                         self.expDesign.spacing(idx));
@@ -62,12 +56,8 @@ classdef GratingThreshTrial < CueTrial
             end
             
             [~, placeIdx] = self.get_cue(idx);
-            if self.threshType == "size"
-                [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
-                self.set_position_params() % resets the vline params to fit new size
-            elseif self.threshType == "spacing"
-                [stimuli, dests] = self.make_stimuli(idx, placeIdx);
-            end
+            [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
+            self.set_position_params() % resets the vline params to fit new size
 
             fixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
@@ -102,35 +92,29 @@ classdef GratingThreshTrial < CueTrial
         
         function [keys] = dump_results_info(self)
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
-            keys = {'response', 'RT', 'fix_check', 'T', 'grating_size', 'correct'};            
+            keys = {'response', 'RT', 'fix_check', 'T', self.threshType, 'correct'};            
         end  
         
-        function threshSize = get_size_thresh(self, pInit, resultsStruct)
-            
-            if self.threshType == "size"
-                accuracy = analyze_results(resultsStruct, 'grating_size', ...
-                    {'correct'}, {}, []);
-                % make the results structure
-                results.x = accuracy.grating_size;
-            elseif self.threshType == "spacing"
-                accuracy = analyze_results(resultsStruct, 'spacing', ...
-                    {'correct'}, {}, []);
-                % make the results structure
-                results.x = accuracy.spacing;
-            end
-            results.y = accuracy.correct;
+        function pFit = get_size_thresh(self, pInit, resultsStruct)
+            % get accuracy results from the trials
+            accuracy = analyze_results(resultsStruct, self.threshType, ...
+                {'correct'}, {}, [], @mean);
+            count = analyze_results(resultsStruct, self.threshType, ...
+                {'correct'}, {}, [], @length);
+            % make the results structure
+            results.x = accuracy.(string(self.threshType)); % the x-values
+            results.w = count.correct ./ sum(count.correct); % weighted by number of trials
+            results.y = accuracy.correct; % the y-values
             
             % fit psychometric function to find theshold
             variables = {'t', 'b'};
             pFit = minimize_objective(variables, @log_likelihood,...
                 pInit, results, @weibull);
-            threshSize = pFit.t;
             
-            scatter(results.x, results.y)
-            hold
-            plot(results.x, weibull(pFit, results.x))   
+%             scatter(results.x, results.y)
+%             hold
+%             plot(results.x, weibull(pFit, results.x))   
         end
-
     end
 end
 

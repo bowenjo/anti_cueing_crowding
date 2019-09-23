@@ -45,7 +45,7 @@ classdef CueTrialParams < handle
         flankerStyle % char - the flanker style - options - 't', 'r', 'b'  
         flankerKeys % cell array - keys for the flankers
         totalNumFlankers % int - the total number of flankers
-        isHash % bool - true if flankers are hash
+        isHash % bool - true if flankers are hashed style
         
     end
     

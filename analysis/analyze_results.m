@@ -1,4 +1,4 @@
-function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, filterValues)
+function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, filterValues, fn)
     % load in the results structure and calculate mean yKey values per xKey
     % Paramaters
     %   results - struct - results structure with fields 
@@ -30,7 +30,7 @@ function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, fil
             % filter by keys and values
             filterIndices = filter_by_index(results, fKeys, fValues);
             analyzedResults.(string(yKey)) = ...
-                [analyzedResults.(string(yKey)) mean(yValues(filterIndices))]; 
+                [analyzedResults.(string(yKey)) fn(yValues(filterIndices))]; 
         end
     end
 
