@@ -30,8 +30,12 @@ classdef Experiment < handle
             self.nTrialTracker.(index) = nTrials;
         end
         
-        function run(self)
-            for key = fields(self.blocks)'
+        function run(self, blockIndices)
+            if isempty(blockIndices)
+                blockIndices = fields(self.blocks)';
+            end
+            
+            for key = blockIndices
                 block = self.blocks.(string(key));
                 nTrials = self.nTrialTracker.(string(key));
                 block.run(nTrials, key);
@@ -66,8 +70,10 @@ classdef Experiment < handle
                     end
                 end
             end
-            
-            save(file, 'results')
+            % save if there is a file name
+            if ~isempty(file)
+                save(file, 'results');
+            end
         end
     end
 end
