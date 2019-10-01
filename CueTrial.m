@@ -307,7 +307,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             
             self.draw_fixation(0)
             self.cue_vlines(0)
-            Screen('Flip', self.window)
+            vbl = Screen('Flip', self.window);
 
             % append the response data
             fix = mean(fixationChecks == 1);

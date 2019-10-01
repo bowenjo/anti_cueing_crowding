@@ -76,7 +76,7 @@ classdef CueTrialParams < handle
             
             if self.stimType == "grating"
                 self.targetOrientChoice = [135 45];
-                self.flankerOrientChoice = [1:35 55:125 145:180];
+                self.flankerOrientChoice = [10:35 55:80 100:125 145:170];
             elseif self.stimType == "rotated_t"
                 self.targetOrientChoice = [0 180];
                 self.flankerOrientChoice = [0 90 180 270];
@@ -85,7 +85,7 @@ classdef CueTrialParams < handle
             self.flankerOrientProb = ones(1, 180)/180;
             
             self.flankerStyle = 't';   
-            self.nFlankers = 1;
+            self.nFlankers = 2;
             self.isHash = false; 
             
             % response info
