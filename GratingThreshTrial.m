@@ -120,9 +120,12 @@ classdef GratingThreshTrial < CueTrial
             pFit = minimize_objective(variables, @log_likelihood,...
                 pInit, results, @weibull);
             
-%             scatter(results.x, results.y)
-%             hold
-%             plot(results.x, weibull(pFit, results.x))   
+            close all;
+            figure
+            hold on
+            scatter(results.x, results.y)
+            plot(results.x, weibull(pFit, results.x))  
+            hold off
         end
     end
 end
