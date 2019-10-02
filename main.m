@@ -34,7 +34,7 @@ end
 
 % base wait screen
 waitMessage = '\n press space bar to start';
-Wait = WaitScreen(window, waitMessage, 70);
+Wait = WaitScreen(window, windowRect, waitMessage, 70, []);
 
 % all experiment parameters
 stimTime = 133/1000; % stimulus presentation time
@@ -42,29 +42,24 @@ stimTime = 133/1000; % stimulus presentation time
 % ===========================================
 % Grating Spacing Threshold Experiment
 % ===========================================
-if sessionNumber == 1
+if sessionNumber == '1'
     GratingExp = Experiment();
     
     % grating experiment instructions
-    gratingInstruct = load('instructions/grating_thresh_instruction_frames.mat').instructions;
+    gratingInstruct = load('instructions/grating_thresh_instruction_frames.mat');
+    gratingInstruct = gratingInstruct.instructions;
     gInstructBlock = WaitScreen(window, windowRect, '', 70, gratingInstruct);
-    GratingExp.append('exp_instructions', gInstructBlock);
+    GratingExp.append_block('exp_instructions', gInstructBlock, 0);
 
     % grating threshold parameters
     nGratingTrials = 200;
-    nPracticeGratingTrials = 20;
-    initSize = 5; % initial size of grating in degrees
+    nPracticeGratingTrials = 1;
+    initSize = 4; % initial size of grating in degrees
     stepSize = .2; % grating step size in degrees
     nUp = 1; % number of wrong trials in a row to move up 
     nDown = 3; % number of correct trials in a row to move down
     cyclesPerGrating = 4;
-    practicePerformanceThreshold = 0.9;
-
-    % psychometric fit initialization
-    pInit.t = 1.5; % estimated threshold spacing
-    pInit.b = 1; % estimated slope
-    pInit.a = 0.75; % threshold percent correct
-    pInit.g = 0.50; % chance percent correct
+    practicePerformanceThreshold = 0.8;
 
     % grating experiment blocks
     WaitGrating = Wait;
@@ -111,19 +106,25 @@ if sessionNumber == 1
         gratingBlockIndices(4:length(gratingBlockIndices)));
 else
     % or load in the old files from a previous session
-    GratingExp = load([subjectDir '/1/GratingThresholdExperiment.mat']).GratingExp;
-    gratingResults = load([subjectDir '/1/grating_threshold_results.mat']).results;
+    GratingExp = load([subjectDir '/1/GratingThresholdExperiment.mat']);
+    GratingExp = GratingExp.GratingExp;
+    gratingResults = load([subjectDir '/1/grating_threshold_results.mat']);
+    gratingResults = gratingResults.results;
 end
 
 % find (or load in) the spacing range for full experiment
 GratingBlock = GratingExp.blocks.grating_block;
+% psychometric fit initialization
+pInit.t = 1.5; % estimated threshold spacing
+pInit.b = 1; % estimated slope
+pInit.g = 0.50; % chance percent correct
 % lower bound 
 pInit.a = .55;
-pFitLower = GratingBlock.get_thresh_size(pInit, gratingResults);
+pFitLower = GratingBlock.get_size_thresh(pInit, gratingResults);
 lowerSpacing = max(GratingBlock.diameter, pFitLower.t); % physical min or ~55% performance
 % upper bound
 pInit.a = .80;
-pFitUpper = GratingBlock.get_thresh_size(pInit, gratingResults);
+pFitUpper = GratingBlock.get_size_thresh(pInit, gratingResults);
 upperSpacing = pFitUpper.t + pFitUpper.t/2;
 
 % verify the range of spacings
@@ -141,16 +142,17 @@ end
 Exp = Experiment();
 
 % instructions
-expInstruct = load('instructions/anti_cueing_instruction_frames.mat').instructions;
+expInstruct = load('instructions/anti_cueing_instruction_frames.mat');
+expInstruct = expInstruct.instructions;
 InstructBlock = WaitScreen(window, windowRect, '', 70, expInstruct);
-Exp.append('exp_instructions', InstructBlock);
+Exp.append_block('exp_instructions', InstructBlock, 0);
 
 %block trial information
 nTotalTrials = 960;
 nTrialsPerBlock = 120;
 nBlocks = nTotalTrials/nTrialsPerBlock;
-nPracticeTrials = 100;
-practicePerformanceThreshold = 0.9;
+nPracticeTrials = 16;
+practicePerformanceThreshold = 0.75;
 
 % timing information
 isiTime = 1200/1000; % pre-cue time
@@ -168,29 +170,29 @@ spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
 
 % append practice blocks
 pWait1 = Wait;
-pWait1.displayText = ['Practice Trial: Half Speed' Wait.displayText];
+pWait1.displayText = ['Practice Trial: Examples' Wait.displayText];
 pBlock1 =  CueTrial(window, windowRect, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
-                    isiTime, 2, 1, 2);
+                    isiTime, 1, 1, 1);
 
 pWait2 = Wait;
-pWait2.displayText = ['Practice Trial: Long Delay' Wait.displayText];
+pWait2.displayText = ['Practice Trial 1' Wait.displayText];
 pBlock2 = CueTrial(window, windowRect, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, cueTime, longSOA, stimTime);
 
 pWait3 = Wait;
-pWait3.dsiplayText = ['Practice Trial: Short Delay' Wait.displayText];
+pWait3.displayText = ['Practice Trial 2' Wait.displayText];
 pBlock3 =  CueTrial(window, windowRect, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, cueTime, shortSOA, stimTime);
 
-Exp.append('practice_wait_1', pWait1, 0);
-Exp.append('practice_block_1', pBlock1, 10);
-Exp.append('practice_wait_2', pWait2, 0);
-Exp.append('practice_block_2', pBlock2, nPracticeTrials/2);
-Exp.append('practice_wait_3', pWait3, 0);
-Exp.append('practice_block_3', pBlock3, nPracticeTrials/2);
+Exp.append_block('practice_wait_1', pWait1, 0);
+Exp.append_block('practice_block_1', pBlock1, 8);
+Exp.append_block('practice_wait_2', pWait2, 0);
+Exp.append_block('practice_block_2', pBlock2, nPracticeTrials/2);
+Exp.append_block('practice_wait_3', pWait3, 0);
+Exp.append_block('practice_block_3', pBlock3, nPracticeTrials/2);
 
 % append full experiment blocks
 blockLabels = string(1:nBlocks);
@@ -228,7 +230,7 @@ Exp.append_block("end_screen", WaitEnd, 0);
 blockIndices = fields(Exp.blocks)';
 Exp.run(blockIndices(1))% run instructions
 
-if sessionNumber == 1
+if sessionNumber == '1'
     Exp.run(blockIndices(2:3)) % run the slowed-down examples
     % run a couple practice blocks and check they're doing it correctly
     practiceNotComplete = 1;

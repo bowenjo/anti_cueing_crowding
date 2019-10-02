@@ -100,7 +100,7 @@ classdef CueTrialParams < handle
         
         function set_position_params(self)
             % Get the vertical cue lines
-            xOffset = 14; % target location in degrees
+            xOffset = 12; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
