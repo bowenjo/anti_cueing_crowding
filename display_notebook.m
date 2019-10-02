@@ -170,8 +170,8 @@ legend('9 deg', '12 deg', 'Location', 'southeast');
 hold off
 
 %% Full experiment plots
-results_path = [pwd '/results/9_24'];
-r = load([results_path '/JB_full_9_24/experiment_results.mat']);
+results_path = [pwd '/results/KB/1/'];
+r = load([results_path '/experiment_results.mat']);
 results = r.results;
 %% all scores
 all = analyze_results(results, 'spacing', {'correct'}, {}, [], @mean);
