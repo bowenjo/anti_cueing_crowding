@@ -39,97 +39,116 @@ Wait = WaitScreen(window, windowRect, waitMessage, 70, []);
 % all experiment parameters
 stimTime = 133/1000; % stimulus presentation time
 
-% ===========================================
-% Grating Spacing Threshold Experiment
-% ===========================================
-if sessionNumber == '1'
-    GratingExp = Experiment();
-    
-    % grating experiment instructions
-    gratingInstruct = load('instructions/grating_thresh_instruction_frames.mat');
-    gratingInstruct = gratingInstruct.instructions;
-    gInstructBlock = WaitScreen(window, windowRect, '', 70, gratingInstruct);
-    GratingExp.append_block('exp_instructions', gInstructBlock, 0);
-
-    % grating threshold parameters
-    nGratingTrials = 200;
-    nPracticeGratingTrials = 1;
-    initSize = 4; % initial size of grating in degrees
-    stepSize = .2; % grating step size in degrees
-    nUp = 1; % number of wrong trials in a row to move up 
-    nDown = 3; % number of correct trials in a row to move down
-    cyclesPerGrating = 4;
-    practicePerformanceThreshold = 0.8;
-
-    % grating experiment blocks
-    WaitGrating = Wait;
-    
-    % append practice blocks
-    WaitGrating.displayText = ['Grating Threshold Experiment: Practice' Wait.displayText]; 
-    GratingExp.append_block("grating_wait_practice", WaitGrating, 0);
-    GratingExp.append_block("grating_block_practice", ...
-                            GratingThreshTrial(window, windowRect, 'spacing', initSize, ...
-                            stepSize, nUp, nDown, cyclesPerGrating, stimTime), ...
-                            nPracticeGratingTrials);
-
-    % append blocks
-    WaitGrating.displayText = ['Grating Threshold Experiment' Wait.displayText];
-    GratingExp.append_block("grating_wait", WaitGrating, 0);
-    GratingExp.append_block("grating_block", ...
-                            GratingThreshTrial(window, windowRect, 'spacing', initSize, ...
-                            stepSize, nUp, nDown, cyclesPerGrating, stimTime), ...
-                            nGratingTrials);
-                        
-    WaitEnd = Wait;
-    WaitEnd.displayText = 'You Are Done with Part I!';
-    GratingExp.append_block("end_screen", WaitEnd, 0)
-
-    % run and save the full experiment
-    gratingBlockIndices = fields(GratingExp.blocks)';
-    GratingExp.run(gratingBlockIndices(1))
-    
-    gratingPracticeNotComplete = true;
-    while gratingPracticeNotComplete
-        GratingExp.run(gratingBlockIndices(2:3));
-        gratingPracticeData = GratingExp.save_run('',gratingBlockIndices(2:3));
-        gratingPracticeResults = analyze_results(gratingPracticeData, ...
-            'spacing', {'correct'}, {}, [], @mean);
-        if mean(gratingPracticeResults.correct) > practicePerformanceThreshold
-            gratingPracticeNotComplete = false;
-        end
-    end
-    
-    GratingExp.run(gratingBlockIndices(4:length(gratingBlockIndices)));
-        
-    save([sessionDir '/GratingThresholdExperiment.mat'], 'GratingExp')
-    gratingResults = GratingExp.save_run([sessionDir '/grating_threshold_results.mat'], ...
-        gratingBlockIndices(4:length(gratingBlockIndices)));
-else
-    % or load in the old files from a previous session
-    GratingExp = load([subjectDir '/1/GratingThresholdExperiment.mat']);
-    GratingExp = GratingExp.GratingExp;
-    gratingResults = load([subjectDir '/1/grating_threshold_results.mat']);
-    gratingResults = gratingResults.results;
-end
-
-% find (or load in) the spacing range for full experiment
-GratingBlock = GratingExp.blocks.grating_block;
+% ========================================
+% Baseline: Grating Size and Spacing Range
+% ========================================
 % psychometric fit initialization
-pInit.t = 1.5; % estimated threshold spacing
+pInit.t = 1; % estimated threshold spacing
 pInit.b = 1; % estimated slope
 pInit.g = 0.50; % chance percent correct
+
+if sessionNumber == '1'
+    % 
+    nUp = 1; % number of wrong trials in a row to move up 
+    nDown = 3; % number of correct trials in a row to move down
+    
+    % ==================================
+    % Grating Size Threshold Experiment
+    % ==================================
+    SzExp = Experiment();
+    
+    % size grating threshold paramters
+    nSzTrials = 100;
+    initSize = 1.25;
+    stepSize = .1;
+    
+    % size grating experiment instructions
+    szInstruct = load('instructions/size_thresh_instruction_frames.mat');
+    szInstruct = szInstruct.instructions;
+    szInstructBlock = WaitScreen(window, windowRect, '', 70, szInstruct);
+    SzExp.append_block('exp_instructions', szInstructBlock, 0);
+    
+    % grating size experiment blocks
+    SzWait = Wait;
+    SzWait.displayText = ['Part I: Setting a Baseline (Size) \n' Wait.displayText];
+    SzBlock = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
+                        stepSize, nUp, nDown, stimTime);
+    
+    % append blocks
+    SzExp.append_block("grating_wait", SzWait, 0);
+    SzExp.append_block("grating_block", SzBlock, nSzTrials);
+    
+    % run and save the full experiment
+    SzExp.run([]);
+    save([sessionDir '/SzThresholdExperiment.mat'], 'SzExp')
+    szResults = SzExp.save_run([sessionDir '/sz_threshold_results.mat'], []);
+    
+    % get the threshold diameter
+    pInit.a = .75;
+    pFitSize = SzBlock.get_size_thresh(pInit, SzResults);
+    diameter = pFitSize.t + pFitSize.t/2;
+    
+    % =======================================
+    % Grating Spacing Threshold Experiment
+    % =======================================
+    SpExp = Experiment();
+    
+    % spacing grating threshold parameters
+    nSpTrials = 200;
+    initSpacing = 4; % initial target-flanker spacing of grating in degrees
+    stepSpacing = .2; % spacing step size in degrees
+    
+    % spacing grating experiment instructions
+    spInstruct = load('instructions/spacing_thresh_instruction_frames.mat');
+    spInstruct = spInstruct.instructions;
+    spInstructBlock = WaitScreen(window, windowRect, '', 70, spInstruct);
+    SpExp.append_block('exp_instructions', spInstructBlock, 0);
+
+    % grating spacing experiment blocks
+    SpWait = Wait;
+    SpWait.displayText = ['Part II: Setting a Baseline (Spacing) \n' Wait.displayText];
+    SpBlock= GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
+                        stepSpacing, nUp, nDown, stimTime);
+    SpBlock.diameter = diameter; % add the threshold diameter
+                    
+    % append blocks
+    SpExp.append_block("grating_wait", SpWait, 0);
+    SpExp.append_block("grating_block", SpBlock, nSpTrials);
+                        
+    EndWait = Wait;
+    EndWait.displayText = 'You Are Done With Part I!';
+    SpExp.append_block("end_screen", EndWait, 0)
+
+    % run and save the full experiment
+    SpExp.run([]);
+    save([sessionDir '/SpThresholdExperiment.mat'], 'SpExp')
+    spResults = SpExp.save_run([sessionDir '/sp_threshold_results.mat'], []);
+    
+else    
+    % or load in spacing threshold from previous session 
+    SpExp = load([subjectDir '/1/SpThresholdExperiment.mat']);
+    SpExp = SpExp.SpExp;
+    spResults = load([subjectDir '/1/sp_threshold_results.mat']);
+    spResults = spResults.results;
+end
+
+% get a range of spacings
+SpBlock = SpExp.blocks.grating_block;
 % lower bound 
 pInit.a = .55;
-pFitLower = GratingBlock.get_size_thresh(pInit, gratingResults);
-lowerSpacing = max(GratingBlock.diameter, pFitLower.t); % physical min or ~55% performance
+pInit.t = 1;
+pFitLower = SpBlock.get_size_thresh(pInit, spResults);
+lowerSpacing = max(SpBlock.diameter, pFitLower.t); % physical min or ~55% performance
 % upper bound
 pInit.a = .80;
-pFitUpper = GratingBlock.get_size_thresh(pInit, gratingResults);
+pInit.t = 3;
+pFitUpper = SpBlock.get_size_thresh(pInit, spResults);
 upperSpacing = pFitUpper.t + pFitUpper.t/2;
 
 % verify the range of spacings
 sca;
-fprintf('Lower Limit: %4.2f; Upper Limit; %4.2f', [lowerSpacing, upperSpacing]);
+fprintf('Size: %4.2 \n Lower Spacing: %4.2f \n Upper Spacing: %4.2f \n',...
+    [diameter, lowerSpacing, upperSpacing]);
 if ~input('Continue: 1-yes, 0-no? ', 's')
     return
 else
@@ -141,24 +160,19 @@ end
 % =====================================
 Exp = Experiment();
 
-% instructions
-expInstruct = load('instructions/anti_cueing_instruction_frames.mat');
-expInstruct = expInstruct.instructions;
-InstructBlock = WaitScreen(window, windowRect, '', 70, expInstruct);
-Exp.append_block('exp_instructions', InstructBlock, 0);
-
 %block trial information
 nTotalTrials = 960;
 nTrialsPerBlock = 120;
 nBlocks = nTotalTrials/nTrialsPerBlock;
 nPracticeTrials = 16;
 practicePerformanceThreshold = 0.75;
+diameter = SpBlock.diameter;
 
 % timing information
 isiTime = 1200/1000; % pre-cue time
 cueTime = 40/1000; % cue presentation time
 longSOA = 600/1000; % long SOA time
-shortSOA = 40/1000; %short SOA time
+shortSOA = 40/1000; % short SOA time
 
 % cue information
 cuedLocProb = [.5 .5]; % probability of cue location
@@ -168,22 +182,28 @@ cueValidProb = .8;
 spacingChoices = [Inf linspace(lowerSpacing, upperSpacing, 7)];
 spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
 
+% instructions
+expInstruct = load('instructions/anti_cueing_instruction_frames.mat');
+expInstruct = expInstruct.instructions;
+InstructBlock = WaitScreen(window, windowRect, '', 70, expInstruct);
+Exp.append_block('exp_instructions', InstructBlock, 0);
+
 % append practice blocks
 pWait1 = Wait;
-pWait1.displayText = ['Practice Trial: Examples' Wait.displayText];
-pBlock1 =  CueTrial(window, windowRect, cuedLocProb, ...
+pWait1.displayText = ['Practice: Slowed-down Examples' Wait.displayText];
+pBlock1 =  CueTrial(window, windowRect, diameter, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, 1, 1, 1);
 
 pWait2 = Wait;
-pWait2.displayText = ['Practice Trial 1' Wait.displayText];
-pBlock2 = CueTrial(window, windowRect, cuedLocProb, ...
+pWait2.displayText = ['Practice 1' Wait.displayText];
+pBlock2 = CueTrial(window, windowRect, diameter, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, cueTime, longSOA, stimTime);
 
 pWait3 = Wait;
-pWait3.displayText = ['Practice Trial 2' Wait.displayText];
-pBlock3 =  CueTrial(window, windowRect, cuedLocProb, ...
+pWait3.displayText = ['Practice 2' Wait.displayText];
+pBlock3 =  CueTrial(window, windowRect, diameter, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, cueTime, shortSOA, stimTime);
 
@@ -209,22 +229,22 @@ for i = 1:nBlocks
     if soaChoices(i)
         % long block
         Exp.append_block(blockLabel, ...
-                         CueTrial(window, windowRect, cuedLocProb, ...
+                         CueTrial(window, windowRect, diameter, cuedLocProb, ...
                          cueValidProb, spacingProb, spacingChoices, ...
                          isiTime, cueTime, longSOA, stimTime),...
                          nTrialsPerBlock);
     else
         % short block
         Exp.append_block(blockLabel, ...
-                         CueTrial(window, windowRect, cuedLocProb, ...
+                         CueTrial(window, windowRect, diameter, cuedLocProb, ...
                          cueValidProb, spacingProb, spacingChoices, ...
                          isiTime, cueTime, shortSOA, stimTime),...
                          nTrialsPerBlock);
     end
 end
-WaitEnd = Wait;
-WaitEnd.displayText = 'You Are Done!';
-Exp.append_block("end_screen", WaitEnd, 0);
+EndWait = Wait;
+EndWait.displayText = 'You Are Done!';
+Exp.append_block("end_screen", EndWait, 0);
 
 % run the experiment
 blockIndices = fields(Exp.blocks)';
