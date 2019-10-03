@@ -123,7 +123,8 @@ classdef GratingThreshTrial < CueTrial
             x = linspace(0, max(results.x));
             scatter(results.x, results.y)
             scatter(pFit.t, pFit.a)
-            plot(x, weibull(pFit, x))  
+            plot(x, weibull(pFit, x)) 
+            title(string(self.threshType))
             hold off
         end
     end

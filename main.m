@@ -59,7 +59,7 @@ if sessionNumber == '1'
     
     % size grating threshold paramters
     nSzTrials = 100;
-    initSize = 1.25;
+    initSize = 1.5;
     stepSize = .1;
     
     % size grating experiment instructions
@@ -69,14 +69,15 @@ if sessionNumber == '1'
     SzExp.append_block('exp_instructions', szInstructBlock, 0);
     
     % grating size experiment blocks
-    SzWait = Wait;
-    SzWait.displayText = ['Part I: Setting a Baseline (Size) \n' Wait.displayText];
     SzBlock = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
                         stepSize, nUp, nDown, stimTime);
     
     % append blocks
-    SzExp.append_block("grating_wait", SzWait, 0);
     SzExp.append_block("grating_block", SzBlock, nSzTrials);
+    
+    EndWait = Wait;
+    EndWait.displayText = 'You Are Done With Part I!';
+    SzExp.append_block("end_screen", EndWait, 0)
     
     % run and save the full experiment
     SzExp.run([]);
@@ -85,7 +86,7 @@ if sessionNumber == '1'
     
     % get the threshold diameter
     pInit.a = .75;
-    pFitSize = SzBlock.get_size_thresh(pInit, SzResults);
+    pFitSize = SzBlock.get_size_thresh(pInit, szResults);
     diameter = pFitSize.t + pFitSize.t/2;
     
     % =======================================
@@ -95,7 +96,7 @@ if sessionNumber == '1'
     
     % spacing grating threshold parameters
     nSpTrials = 200;
-    initSpacing = 4; % initial target-flanker spacing of grating in degrees
+    initSpacing = 5; % initial target-flanker spacing of grating in degrees
     stepSpacing = .2; % spacing step size in degrees
     
     % spacing grating experiment instructions
@@ -105,18 +106,16 @@ if sessionNumber == '1'
     SpExp.append_block('exp_instructions', spInstructBlock, 0);
 
     % grating spacing experiment blocks
-    SpWait = Wait;
-    SpWait.displayText = ['Part II: Setting a Baseline (Spacing) \n' Wait.displayText];
     SpBlock= GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
                         stepSpacing, nUp, nDown, stimTime);
     SpBlock.diameter = diameter; % add the threshold diameter
+    SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
                     
     % append blocks
-    SpExp.append_block("grating_wait", SpWait, 0);
     SpExp.append_block("grating_block", SpBlock, nSpTrials);
                         
     EndWait = Wait;
-    EndWait.displayText = 'You Are Done With Part I!';
+    EndWait.displayText = 'You Are Done With Part II!';
     SpExp.append_block("end_screen", EndWait, 0)
 
     % run and save the full experiment
@@ -132,13 +131,15 @@ else
     spResults = spResults.results;
 end
 
-% get a range of spacings
+
 SpBlock = SpExp.blocks.grating_block;
+% diameter
+diameter = SpBlock.diameter;
 % lower bound 
 pInit.a = .55;
 pInit.t = 1;
 pFitLower = SpBlock.get_size_thresh(pInit, spResults);
-lowerSpacing = max(SpBlock.diameter, pFitLower.t); % physical min or ~55% performance
+lowerSpacing = max(diameter, pFitLower.t); % physical min or ~55% performance
 % upper bound
 pInit.a = .80;
 pInit.t = 3;
@@ -147,13 +148,18 @@ upperSpacing = pFitUpper.t + pFitUpper.t/2;
 
 % verify the range of spacings
 sca;
-fprintf('Size: %4.2 \n Lower Spacing: %4.2f \n Upper Spacing: %4.2f \n',...
-    [diameter, lowerSpacing, upperSpacing]);
-if ~input('Continue: 1-yes, 0-no? ', 's')
-    return
-else
-    [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+fprintf('Size: %4.2f; Lower Spacing: %4.2f; Upper Spacing: %4.2f ',[diameter, lowerSpacing, upperSpacing]);
+pauseBeforeExp = true;
+while pauseBeforeExp
+    continueToExp = input('Continue: y/n ?', 's');
+    if continueToExp== 'n'
+        return
+    elseif continueToExp == 'y' 
+        pauseBeforeExp = false;
+    end
 end
+
+[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 
 % =====================================
 % Full Experiment 
@@ -166,7 +172,6 @@ nTrialsPerBlock = 120;
 nBlocks = nTotalTrials/nTrialsPerBlock;
 nPracticeTrials = 16;
 practicePerformanceThreshold = 0.75;
-diameter = SpBlock.diameter;
 
 % timing information
 isiTime = 1200/1000; % pre-cue time
@@ -189,8 +194,6 @@ InstructBlock = WaitScreen(window, windowRect, '', 70, expInstruct);
 Exp.append_block('exp_instructions', InstructBlock, 0);
 
 % append practice blocks
-pWait1 = Wait;
-pWait1.displayText = ['Practice: Slowed-down Examples' Wait.displayText];
 pBlock1 =  CueTrial(window, windowRect, diameter, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, 1, 1, 1);
@@ -207,7 +210,6 @@ pBlock3 =  CueTrial(window, windowRect, diameter, cuedLocProb, ...
                     cueValidProb, spacingProb, spacingChoices, ...
                     isiTime, cueTime, shortSOA, stimTime);
 
-Exp.append_block('practice_wait_1', pWait1, 0);
 Exp.append_block('practice_block_1', pBlock1, 8);
 Exp.append_block('practice_wait_2', pWait2, 0);
 Exp.append_block('practice_block_2', pBlock2, nPracticeTrials/2);
@@ -242,6 +244,7 @@ for i = 1:nBlocks
                          nTrialsPerBlock);
     end
 end
+
 EndWait = Wait;
 EndWait.displayText = 'You Are Done!';
 Exp.append_block("end_screen", EndWait, 0);
@@ -251,14 +254,14 @@ blockIndices = fields(Exp.blocks)';
 Exp.run(blockIndices(1))% run instructions
 
 if sessionNumber == '1'
-    Exp.run(blockIndices(2:3)) % run the slowed-down examples
+    Exp.run(blockIndices(2)) % run the slowed-down examples
     % run a couple practice blocks and check they're doing it correctly
-    practiceNotComplete = 1;
+    practiceNotComplete = true;
     while practiceNotComplete
         % run practice blocks 
-        Exp.run(blockIndices(4:7))
+        Exp.run(blockIndices(3:6))
         % check for performance
-        practiceData = Exp.save_run('', blockIndices(4:7));
+        practiceData = Exp.save_run('', blockIndices(3:6));
         practiceResults = analyze_results(practiceData, 'spacing', {'correct'}, {}, [], @mean);
         if practiceResults.correct(length(spacingChoices)) > practicePerformanceThreshold
             practiceNotComplete = false;
@@ -266,11 +269,11 @@ if sessionNumber == '1'
             practiceNotComplete = true;
         end 
     end
-    % run full experimetn
-    Exp.run(blockIndices(8:length(blockIndices)));     
+    % run full experiment
+    Exp.run(blockIndices(7:length(blockIndices)));     
 else
     % only run the full experiment blocks if not session #1
-    Exp.run(blockIndices(8:length(blockIndices)));
+    Exp.run(blockIndices(7:length(blockIndices)));
 end
 sca;
 % save the full experiment 
