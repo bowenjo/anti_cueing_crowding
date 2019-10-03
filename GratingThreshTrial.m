@@ -8,15 +8,14 @@ classdef GratingThreshTrial < CueTrial
         stepSize
         nUp
         nDown
-        cyclesPerGrating
     end
     
     methods
         function self = GratingThreshTrial(window, windowRect, ...
                 threshType, initSize, stepSize, nUp, nDown, ...
-                cyclesPerGrating, stimTime)
+                stimTime)
             % Construct an instance of this class
-            self = self@CueTrial(window, windowRect, [0 1], ...
+            self = self@CueTrial(window, windowRect, 1, [0 1], ...
                 1, [1], [Inf], 1, 0, 0, stimTime);
             
             self.threshType = threshType;
@@ -24,7 +23,6 @@ classdef GratingThreshTrial < CueTrial
             self.stepSize = stepSize;
             self.nUp = nUp;
             self.nDown = nDown;
-            self.cyclesPerGrating = cyclesPerGrating;
         end
         
         function init_grating(self)
@@ -120,11 +118,12 @@ classdef GratingThreshTrial < CueTrial
             pFit = minimize_objective(variables, @log_likelihood,...
                 pInit, results, @weibull);
             
-            close all;
             figure
             hold on
+            x = linspace(0, max(results.x));
             scatter(results.x, results.y)
-            plot(results.x, weibull(pFit, results.x))  
+            scatter(pFit.t, pFit.a)
+            plot(x, weibull(pFit, x))  
             hold off
         end
     end

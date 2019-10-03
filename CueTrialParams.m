@@ -21,9 +21,8 @@ classdef CueTrialParams < handle
         postCuedLoc % array - size(1,nRects) - rectangle indices to present the stimuli following a cue 
         
         % grating parameters
-        spatialFrequency % float - spatial frequency of disparity grating
-        diameter % float - diameter of disparity grating 
-        contrast % float - contrast of disparity grating
+        cyclesPerGrating % integer - number of cycles within a grating, independent of size
+        contrast % float - contrast of grating
         
         % key response info
         leftKey % the left arrow keycode
@@ -51,7 +50,9 @@ classdef CueTrialParams < handle
     
     methods
         function self = CueTrialParams()
-            %Construct an instance of this class
+            % -----------------------------------
+            % Construct an instance of this class
+            % -----------------------------------
             self.screens = Screen('Screens');
             self.screenNumber = max(self.screens);
             
@@ -67,9 +68,8 @@ classdef CueTrialParams < handle
             self.postCuedLoc = [2 1];
             
             % grating information
-            self.diameter = 1;
-            self.spatialFrequency = 4/self.diameter;
             self.contrast = 1;
+            self.cyclesPerGrating = 4;
             
             % stimuli info
             self.stimType = "grating";
@@ -99,8 +99,12 @@ classdef CueTrialParams < handle
         end
         
         function set_position_params(self)
+            % -------------------------------------------------------
+            % (re)sets the position parameters for the cue locations
+            % for the current grating diameter
+            % -------------------------------------------------------
             % Get the vertical cue lines
-            xOffset = 12; % target location in degrees
+            xOffset = 14; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
@@ -110,6 +114,7 @@ classdef CueTrialParams < handle
             self.nLocs = length(self.xPos);
             vls = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter); % vline space
+            
             self.vLines = [];
             for os = [-xOffsetPix, xOffsetPix]
                 xCoor = [os+vls, os+vls, os-vls, os-vls];
@@ -120,6 +125,9 @@ classdef CueTrialParams < handle
         end
         
         function set_flanker_params(self)
+            % -------------------------------------------------------
+            % (re)sets the flanker parameters for the currect style
+            % -------------------------------------------------------
             if self.flankerStyle == 't' || self.flankerStyle == 'r'
                 self.totalNumFlankers = self.nFlankers*2;
             elseif self.flankerStyle == 'b'

@@ -1,7 +1,11 @@
 classdef CueTrial < TrialModule & CueTrialParams
-    % CueRects: Class for running an attention anti-cueing experiments
+    % CueRects: Class for running attention anti-cueing experiments
     
     properties
+        % grating information
+        diameter % float - size of grating in degrees visual angle
+        spatialFrequency
+        
         % data randomization info
         cuedLocProb % array - size(1,nLocs) - probablity rectangle will be cued
         cueValidProb % float (0,1) - probability cue will be valid
@@ -24,13 +28,18 @@ classdef CueTrial < TrialModule & CueTrialParams
     end
     
     methods
-        function self = CueTrial(window, windowRect, cuedLocProb, ...
-                cueValidProb, spacingProb, spacingChoice, ...
+        function self = CueTrial(window, windowRect, diameter, ...
+                cuedLocProb, cueValidProb, spacingProb, spacingChoice, ...
                 isiTime, cueTime, soaTime, stimTime)
-            
-            %CueRects Construct an instance of this class
+            % ----------------------------------------------------
+            % Construct an instance of this class
+            % ----------------------------------------------------
             self = self@TrialModule(window, windowRect);
             self = self@CueTrialParams();
+            
+            % grating size
+            self.diameter = diameter;
+            self.spatialFrequency = self.cyclesPerGrating/self.diameter;
             self.set_position_params();
             self.set_flanker_params();
             
@@ -56,9 +65,11 @@ classdef CueTrial < TrialModule & CueTrialParams
             
         end
         
-        function set_exp_design(self, nTrials) 
+        function set_exp_design(self, nTrials)
+            % ----------------------------------------------------------
             % Sets and randomizes cue and stimulus presentation info for
             % each trial
+            % ----------------------------------------------------------
             
             % cue locations for the each trial
             self.expDesign.cue_loc = random_sample(nTrials, ...
@@ -98,8 +109,10 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
         
         function [cuedLoc, postLoc] = get_cue(self, idx)
+            % -------------------------------------------------------------
             % gets the cued rect index and the stimulus rect index for each
             % trial depending on if it is a valid or non-valid trial
+            % -------------------------------------------------------------
             
             % get the cued rectangle index
             cuedLoc = self.expDesign.cue_loc(idx);
@@ -114,8 +127,10 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
         
         function [] = cue_vlines(self, cuedLoc)
+            % ---------------------------------------------------------
             % highlights the cued rectangle with a different width and
-            % get the rectangle luminance and width info
+            % gets the rectangle luminance and width info
+            % ---------------------------------------------------------
             lums = repmat(self.nonCueLum, 3, self.nLocs*4);
             lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
             % change the luminance and width if a cue is present
@@ -130,6 +145,9 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
         
         function [] = cue_dot(self, cuedLoc)
+            % --------------------------------------------------
+            % Cues a solid dot to the cued location 
+            % --------------------------------------------------
             radius = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter/2);
             
@@ -140,8 +158,10 @@ classdef CueTrial < TrialModule & CueTrialParams
         
         
         function [dest] = get_destination(self, rectIdx, offset)
+            % ----------------------------------------------------------
             % gets the destination of the stimuli with respect to the cue
             % location
+            % -----------------------------------------------------------
             
             radius = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter/2);
@@ -155,7 +175,10 @@ classdef CueTrial < TrialModule & CueTrialParams
         
         function [dests, flankerIdx] = get_flanker_dests(self, dests, ...
                 rectIdx, flankerIdx, offset)
-            % gets the flanker destinations
+            % --------------------------------------------------------
+            % gets the flanker destinations with respect to the cue
+            % location
+            % --------------------------------------------------------
             diameterPix = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter);
             
@@ -173,6 +196,10 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
         
         function [stimuli, dests] = make_stimuli(self, idx, rectIdx)
+            % ------------------------------------------------------
+            % calls a function to make the stimuli and gathers all
+            % destinations
+            % ------------------------------------------------------
             % make the gratings textures
             trialOrientations = zeros(1, self.totalNumFlankers+1);
             
@@ -239,12 +266,18 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
             
         function [] = place_stimuli(self, stimuli, dests)
+            % ---------------------------------------------------------
+            % points the pre-made stimuli to the screen
+            % ---------------------------------------------------------
             for i = 1:length(stimuli)
                 Screen('DrawTexture', self.window, stimuli(i),[], dests(i,:));
             end
         end
         
         function [responseKey, responseTime] = get_key_response(self)
+            % ---------------------------------------------------------
+            % waits for and records a keyboard response to be made
+            % ---------------------------------------------------------
             respToBeMade = true;
             timeStart = GetSecs;
             % wait for subject response
@@ -267,6 +300,9 @@ classdef CueTrial < TrialModule & CueTrialParams
         end
         
         function vbl = forward(self, idx, vbl, nTrials)
+            % ----------------------------------------------------------
+            % runs one complete trial and records the response variables
+            % ----------------------------------------------------------
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
@@ -317,7 +353,11 @@ classdef CueTrial < TrialModule & CueTrialParams
             Screen('Close', stimuli)
         end 
         
-        function [keys] = dump_results_info(self)   
+        function [keys] = dump_results_info(self) 
+            % -------------------------------------------------------------
+            % dumps the block specific results into the results of the full
+            % experiment
+            % -------------------------------------------------------------
             nTrials = length(self.expDesign.response);
             self.expDesign.soa_time = repmat(self.soaTime, 1, nTrials);
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
