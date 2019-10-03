@@ -18,7 +18,7 @@ function [instructions] = anti_cueing_instructions()
     [xRes, yRes] = Screen('WindowSize', window);
     
     textSize = 20;
-    CB = CueTrial(window, windowRect, [1 0], 1, [1], [3], 0, 0, 0, 0);
+    CB = CueTrial(window, windowRect, 1.25, [1 0], 1, [1], [3], 0, 0, 0, 0);
     CB.set_exp_design(1);
     [cueIndex, postCueIndex] = CB.get_cue(1);
     
@@ -27,8 +27,8 @@ function [instructions] = anti_cueing_instructions()
     % 1. Intro
     % =========
     % make the frame
-    message = ['Thank you for taking part in this experiment! \n \n Please press ' ...
-               'the space bar to continue with a few brief instructions.'];
+    message = ['Part III: Visual Crowding with Attentional Cueing \n\n\n' ...
+               'Press the space bar to continue'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', 'center', 1);
     % append the frame
@@ -42,7 +42,7 @@ function [instructions] = anti_cueing_instructions()
     % make the frame
     CB.draw_fixation(.25);
     message = ['For the full experiment, please fixate your eyes on the cross ' ...
-               'in the center of the screen. \n\n Press the space bar to continue'];  
+               'in the center of the screen. \n\n\n Press the space bar to continue'];  
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
     % append the frame
@@ -57,7 +57,7 @@ function [instructions] = anti_cueing_instructions()
     CB.draw_fixation(.25);
     CB.cue_vlines(0);
     message = ['Two sets of vertical lines on each side of the screen ' ...
-               'will be up for the full experiment. \n\n Press the space bar to continue'];
+               'will be up for the full experiment. \n\n\n Press the space bar to continue'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
     % append the frame
@@ -71,7 +71,7 @@ function [instructions] = anti_cueing_instructions()
     CB.draw_fixation(.25);
     CB.cue_vlines(cueIndex);
     message = ['For any given trial, one of the two sets of vertical lines ' ...
-               'will briefly become thicker and brighter. \n\n Press the space bar to continue'];
+               'will briefly become thicker and brighter. \n\n\n Press the space bar to continue'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
     % append the frame
@@ -89,7 +89,7 @@ function [instructions] = anti_cueing_instructions()
     message = ['After the bars flash, a set of gratings will appear briefly ' ...
                'within the vertical bars on one side of the screen. \n \n The '...
                'gratings are MORE LIKELY to appear in the location OPPOSITE ' ...
-               'to the bars that just flashed. \n \n Press the space bar to continue.'];
+               'to the bars that just flashed. \n\n\n Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
     instructions = add_frame(instructions);
@@ -101,10 +101,9 @@ function [instructions] = anti_cueing_instructions()
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     CB.draw_fixation(.25);
     CB.cue_vlines(0);
-    message = ['After the gratings are briefly presented, you will as quickly and ' ...
-               'as accurately as possible report the orientation of the CENTER grating. \n \n' ...
-               'Press the RIGHT ARROW for a central grating facing 45 degrees to the RIGHT. \n \n' ...
-               'Press the LEFT ARROW for a central grating facing 45 degrees to the LEFT. \n \n'...
+    message = ['After the gratings are briefy presented: \n \n' ... 
+               'Press the RIGHT ARROW for a CENTRAL grating tilted 45 degrees to the RIGHT of the vertical. \n \n' ...
+               'Press the LEFT ARROW for a CENTRAL grating facing 45 degrees to the LEFT of the vertical. \n\n\n'...
                'Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
@@ -117,11 +116,11 @@ function [instructions] = anti_cueing_instructions()
     % 7. End
     % ========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-    message = ['Following these instructions, there will be 100 practice trials. \n \n'...
+    message = ['Following these instructions, there will be a few practice trials. \n \n'...
                'After the practice trials, the main experiment will consist of 8 sets of 120 trials' ...
                '(~1hr total). \n \n After each set of 120 trials, there will be an ' ...
                'opportunity for a break. \n \n Thank you again for taking part in this ' ...
-               'experiment. \n \n Press the space bar to begin some practice trials!'];
+               'experiment. \n\n\n Press the space bar to begin some practice trials!'];
            
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', 'center', 1);
