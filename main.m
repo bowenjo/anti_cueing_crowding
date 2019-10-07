@@ -110,6 +110,7 @@ if sessionNumber == '1'
                         stepSpacing, nUp, nDown, stimTime);
     SpBlock.diameter = diameter; % add the threshold diameter
     SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
+    SpBlock.set_position_params();
                     
     % append blocks
     SpExp.append_block("grating_block", SpBlock, nSpTrials);
