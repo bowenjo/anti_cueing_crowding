@@ -1,15 +1,11 @@
 classdef WaitScreen
-    % WaitScreen: Class to schedule wait/break screens between 
-    % experiment blocks
-    %   Methods:
-    %   1) run
-    %       displays the waiting screen until designated key is pressed
+    % Class to schedule wait/break screens between experiment blocks
     
     properties
         displayText % The text string to be displayed
         textSize % the size of the text
-        customFrames % ordered array of screen images to show in order 
-        nFrames
+        customFrames % array of screen images to show in order
+        nFrames % number of frames to show
         nextKey % key to proceed to next message ('SPACE' bar)
         backKey % key to go back to previous message ('Delete' key)
         exitKey % key to escape ('ESCAPE' key)
@@ -25,7 +21,9 @@ classdef WaitScreen
     methods
         function self = WaitScreen(window, windowRect, ...
                 displayText, textSize, customFrames)
-            %WaitScreen Construct an instance of this class
+            % --------------------------------------------------
+            % Construct an instance of this class
+            % --------------------------------------------------
             self.window = window;
             self.displayText = displayText;
             self.textSize = textSize;
@@ -40,12 +38,18 @@ classdef WaitScreen
         end
         
         function simple_text(self)
+            % ---------------------------------------------------
+            % Writes simple text messages to the screen
+            % ---------------------------------------------------
             Screen('TextSize', self.window, self.textSize);
             DrawFormattedText(self.window, [self.displayText], ... 
                     'center', 'center', 1);
         end
         
         function custom_frames(self, fr)
+            % ---------------------------------------------------
+            % Writes custom instruction slides to the screen
+            % ---------------------------------------------------
             if length(self.nFrames) == 3
                 frame = self.customFrames(fr, :, :);
             elseif length(self.nFrames) == 4
@@ -58,6 +62,9 @@ classdef WaitScreen
         
         
         function run(self, nTrials, name)
+            % ----------------------------------------------------
+            % Runs the wait screen/slides until a key is pressed
+            % ----------------------------------------------------
             frameChange = 0;
             wait = true;
             fr = 1;
@@ -106,6 +113,9 @@ classdef WaitScreen
         end
         
         function [keys] = dump_results_info(self)
+            % ----------------------------------------------------
+            % Passes through and does not dump results
+            % ----------------------------------------------------
            keys = {}; 
         end
     end
