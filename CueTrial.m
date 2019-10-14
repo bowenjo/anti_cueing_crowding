@@ -303,6 +303,10 @@ classdef CueTrial < TrialModule & CueTrialParams
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
             % ----------------------------------------------------------
+            if idx == 1
+                self.start_countdown(5);
+                %self.start_screen(KbName('Space'));
+            end
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);

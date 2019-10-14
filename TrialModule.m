@@ -1,10 +1,5 @@
 classdef TrialModule < handle
-    %TrialModule: Base class for running a single experiment block
-    %   Methods: 
-    %   1) draw_fixation
-    %       draws a fixation cross at the center of the scree
-    %   2) run
-    %       runs the experiment block for a designated amount of trials 
+    % Base class for running a single experiment block
     
     properties
         window % the ptb screen object
@@ -19,7 +14,9 @@ classdef TrialModule < handle
     
     methods
         function self = TrialModule(window, windowRect)
-            %MODULE Construct an instance of this class
+            % ---------------------------------------------------
+            % Construct an instance of this class
+            % ---------------------------------------------------
             self.window = window;
             [self.xCenter, self.yCenter] = RectCenter(windowRect);
             [self.xRes, self.yRes] = Screen('WindowSize', window);
@@ -27,14 +24,54 @@ classdef TrialModule < handle
         end
         
         function draw_fixation(self, color)
-            % draws a fixation cross in the center of the screen
+            % ---------------------------------------------------
+            % Draws a fixation cross in the center of the screen
+            % ---------------------------------------------------
             fcv = CenterRectOnPoint([0 0 1 10].*2, self.xCenter, self.yCenter);
             fch = CenterRectOnPoint([0 0 10 1].*2, self.xCenter, self.yCenter);
             Screen('FillRect', self.window, color, [fcv' fch'])
         end
         
+        function start_screen(self, goKey)
+            % --------------------------------------------------
+            % Places a sceen until a go key is pressed to start
+            % the experiment block.
+            % --------------------------------------------------
+            self.draw_fixation(.25)
+            Screen('TextSize', self.window, 26);
+            DrawFormattedText(self.window, 'press the space bar to start', ... 
+                    'center', .60*self.yRes, 1);
+            
+            Screen('Flip', self.window);
+            responseToBeMade = 1;
+            while responseToBeMade
+                [~, ~, keyCode] = KbCheck;
+                if keyCode(goKey)
+                    responseToBeMade = 0;
+                else
+                    responseToBeMade = 1;
+                end
+            end
+        end
+        
+        function start_countdown(self, nSecs)
+            % -------------------------------------------------
+            % Sets a countdown to start the block
+            % -------------------------------------------------
+            Screen('TextSize', self.window, 50);
+            % countdown
+            for t = nSecs:-1:1
+                DrawFormattedText(self.window, num2str(t), ... 
+                    'center', 'center', 1);
+                Screen('Flip', self.window)
+                WaitSecs(1);
+            end
+        end
+        
         function steps = staircase_step(self, steps, results)
-            % Find the next step in a nUp-nDown staircase
+            % --------------------------------------------------
+            % Finds the next step in a nUp-nDown staircase
+            % --------------------------------------------------
             nSteps = length(steps);
             if nSteps < self.nDown || nSteps < self.nUp
                 steps = [steps steps(nSteps)]; 
@@ -57,6 +94,9 @@ classdef TrialModule < handle
         end
         
         function init_eyelink(self, expName, edfFile)
+            % -----------------------------------------------
+            % Initializes the eyelink edf file
+            % -----------------------------------------------
             % initialize for given window
             self.el=EyelinkInitDefaults(self.window);
             self.el.backgroundcolor = .5;
@@ -66,7 +106,9 @@ classdef TrialModule < handle
         end
         
         function check_eyelink(self, idx, nTrials)
-            % checks eyelink and fixation routine before a trial
+            % -------------------------------------------------------
+            % Checks eyelink and fixation routine before a trial
+            % -------------------------------------------------------
             Eyelink('Message', 'TRIALID %d', idx);
             Eyelink('Command','clear_screen 0'); % clear operator screen
             % cancel if eyeLink is not connected
@@ -140,6 +182,9 @@ classdef TrialModule < handle
 
 
         function [] = run(self, nTrials, name)
+            % --------------------------------------------------
+            % Runs the experiment block
+            % --------------------------------------------------
             % set the experimental design
             self.set_exp_design(nTrials);
             % initialize eyelink
