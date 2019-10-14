@@ -61,16 +61,17 @@ if sessionNumber == '1'
     nSzTrials = 100;
     initSize = 1.5;
     stepSize = .1;
+    szFixColors = [0 .35 0; 0 .35 0; .35 0 0; 0 .35 0]; 
     
     % size grating experiment instructions
     szInstruct = load('instructions/size_thresh_instruction_frames.mat');
     szInstruct = szInstruct.instructions;
     szInstructBlock = WaitScreen(window, windowRect, '', 70, szInstruct);
     SzExp.append_block('exp_instructions', szInstructBlock, 0);
-    
+   
     % grating size experiment blocks
     SzBlock = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
-                        stepSize, nUp, nDown, stimTime);
+                        stepSize, nUp, nDown, szFixColors, stimTime);
     
     % append blocks
     SzExp.append_block("grating_block", SzBlock, nSzTrials);
@@ -98,6 +99,7 @@ if sessionNumber == '1'
     nSpTrials = 200;
     initSpacing = 5; % initial target-flanker spacing of grating in degrees
     stepSpacing = .2; % spacing step size in degrees
+    spFixColors = [.25; .25; .25; 0];
     
     % spacing grating experiment instructions
     spInstruct = load('instructions/spacing_thresh_instruction_frames.mat');
@@ -107,7 +109,7 @@ if sessionNumber == '1'
 
     % grating spacing experiment blocks
     SpBlock= GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
-                        stepSpacing, nUp, nDown, stimTime);
+                        stepSpacing, nUp, nDown, spFixColors, stimTime);
     SpBlock.diameter = diameter; % add the threshold diameter
     SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
     SpBlock.set_position_params();
