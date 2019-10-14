@@ -3,18 +3,21 @@ classdef GratingThreshTrial < CueTrial
     % at some eccentricity. Implements a nUp-nDown staircase
     
     properties
-        threshType
-        initSize
-        stepSize
-        nUp
-        nDown
+        threshType % str - the parameter being staircased
+        initSize % float - initial point of the staircase
+        stepSize % float -staicase step size 
+        nUp % int - number of consecutive correct trials to move up
+        nDown % int - number of consecutive correct triaks to move down
+        fixationColors
     end
     
     methods
         function self = GratingThreshTrial(window, windowRect, ...
                 threshType, initSize, stepSize, nUp, nDown, ...
-                stimTime)
+                fixationColors, stimTime)
+            % -------------------------------------------------------
             % Construct an instance of this class
+            % -------------------------------------------------------
             self = self@CueTrial(window, windowRect, 1, [0 1], ...
                 1, [1], [Inf], 1, 0, 0, stimTime);
             
@@ -23,13 +26,20 @@ classdef GratingThreshTrial < CueTrial
             self.stepSize = stepSize;
             self.nUp = nUp;
             self.nDown = nDown;
+            self.fixationColors = fixationColors;
         end
         
         function init_grating(self)
+            % ---------------------------------------------------------
+            % initializes the parameter to be staircased
+            % ---------------------------------------------------------
             self.expDesign.(string(self.threshType)) = [self.initSize];
         end
         
         function [stimuli, dests] = make_grating_stimuli(self, idx, rectIdx)
+            % ----------------------------------------------------------
+            % updates the size of and makes a single grating
+            % ----------------------------------------------------------
             self.diameter = self.expDesign.grating_size(idx);
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
             [stimuli, dests] = self.make_stimuli(idx, rectIdx);
@@ -37,8 +47,14 @@ classdef GratingThreshTrial < CueTrial
             
         
         function vbl = forward(self, idx, vbl, nTrials)
+            % ----------------------------------------------------------
+            % runs one complete trial and records the response variables
+            % ---------------------------------------------------------- 
+            
             % set the grating sizes before the first trial
             if idx == 1
+                self.start_countdown(5);
+                %self.start_screen(KbName('Space'));
                 self.init_grating()
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
@@ -65,13 +81,13 @@ classdef GratingThreshTrial < CueTrial
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
-                self.draw_fixation(.25);
+                self.draw_fixation(self.fixationColors(1, :));
                 self.cue_vlines(0)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
-                self.draw_fixation(.25)
+                self.draw_fixation(self.fixationColors(2, :))
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
                 fixationChecks(i) = check_fix(self.el, self.fixLoc);
@@ -79,12 +95,12 @@ classdef GratingThreshTrial < CueTrial
             end
             
             % Response interval
-            self.draw_fixation(.25)
+            self.draw_fixation(self.fixationColors(3, :))
             self.cue_vlines(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             
-            self.draw_fixation(0)
+            self.draw_fixation(self.fixationColors(4, :))
             self.cue_vlines(0)
             Screen('Flip', self.window, vbl+self.ifi/2);
 
@@ -97,12 +113,18 @@ classdef GratingThreshTrial < CueTrial
         end
         
         function [keys] = dump_results_info(self)
+            % ------------------------------------------------------
+            % dumps the results of the block to the full experiment
+            % ------------------------------------------------------
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
             keys = {'response', 'RT', 'fix_check', 'T', self.threshType, 'correct'};            
 
         end  
         
         function pFit = get_size_thresh(self, pInit, resultsStruct)
+            % -----------------------------------------------------
+            % Fits and draws a psychometric function to find a threshold
+            % -----------------------------------------------------
             % get accuracy results from the trials
             accuracy = analyze_results(resultsStruct, self.threshType, ...
                 {'correct'}, {}, [], @mean);
