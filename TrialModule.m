@@ -63,7 +63,7 @@ classdef TrialModule < handle
             for t = nSecs:-1:1
                 DrawFormattedText(self.window, num2str(t), ... 
                     'center', 'center', 1);
-                Screen('Flip', self.window)
+                Screen('Flip', self.window);
                 WaitSecs(1);
             end
         end
@@ -192,7 +192,10 @@ classdef TrialModule < handle
             % run the design for each trial
             vbl = Screen('Flip', self.window);
             for i = 1:nTrials
-                vbl = self.forward(i, vbl, nTrials);
+                [vbl, rsp] = self.forward(i, vbl, nTrials);
+                if string(rsp) == "skip"
+                    break
+                end
             end
         end
     end

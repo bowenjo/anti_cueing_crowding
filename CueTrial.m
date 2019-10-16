@@ -289,6 +289,9 @@ classdef CueTrial < TrialModule & CueTrialParams
                 elseif keyCode(self.rightKey)
                     responseKey = self.targetOrientChoice(2);
                     respToBeMade = false;
+                elseif keyCode(self.skipKey)
+                    responseKey = "skip";
+                    respToBeMade = false;
                 elseif keyCode(self.escapeKey)
                     Eyelink('StopRecording')
                     ShowCursor;
@@ -299,7 +302,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             responseTime = secs - timeStart;
         end
         
-        function vbl = forward(self, idx, vbl, nTrials)
+        function [vbl, rsp] = forward(self, idx, vbl, nTrials)
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
             % ----------------------------------------------------------
