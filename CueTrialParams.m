@@ -28,6 +28,7 @@ classdef CueTrialParams < handle
         leftKey % the left arrow keycode
         rightKey % the right arrow keycode 
         escapeKey % escape key code
+        skipKey % skips the block
         
         % fixation check info
         fixLoc % the location of the fixation box
@@ -90,6 +91,7 @@ classdef CueTrialParams < handle
             
             % response info
             self.escapeKey = KbName('ESCAPE');
+            self.skipKey = KbName('S');
             self.leftKey = KbName('LeftArrow');
             self.rightKey = KbName('RightArrow');
             

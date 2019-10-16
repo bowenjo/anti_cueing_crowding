@@ -9,12 +9,13 @@ classdef GratingThreshTrial < CueTrial
         nUp % int - number of consecutive correct trials to move up
         nDown % int - number of consecutive correct triaks to move down
         fixationColors
+        practice
     end
     
     methods
         function self = GratingThreshTrial(window, windowRect, ...
                 threshType, initSize, stepSize, nUp, nDown, ...
-                fixationColors, stimTime)
+                fixationColors, stimTime, practice)
             % -------------------------------------------------------
             % Construct an instance of this class
             % -------------------------------------------------------
@@ -27,6 +28,7 @@ classdef GratingThreshTrial < CueTrial
             self.nUp = nUp;
             self.nDown = nDown;
             self.fixationColors = fixationColors;
+            self.practice = practice;
         end
         
         function init_grating(self)
@@ -46,7 +48,7 @@ classdef GratingThreshTrial < CueTrial
         end
             
         
-        function vbl = forward(self, idx, vbl, nTrials)
+        function [vbl,rsp] = forward(self, idx, vbl, nTrials)
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
             % ---------------------------------------------------------- 
@@ -67,6 +69,13 @@ classdef GratingThreshTrial < CueTrial
                     self.expDesign.spacing(idx) = max(self.diameter, ...
                         self.expDesign.spacing(idx));
                 end
+            end
+            
+            % end the experiment if its a practice trial and the number of 
+            % correct trials in a row are met
+            if self.practice && self.expDesign.(string(self.threshType))(idx) < self.initSize
+                rsp = "skip";
+                return
             end
             
             [~, placeIdx] = self.get_cue(idx);
