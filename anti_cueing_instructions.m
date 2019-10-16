@@ -27,9 +27,8 @@ function [instructions] = anti_cueing_instructions()
     % 1. Intro
     % =========
     % make the frame
-    message = ['Part III: Visual Crowding with Attentional Cueing \n\n\n' ...
-               'Press the space bar to continue'];
-    Screen('TextSize', window, textSize);
+    message = ['Part III'];
+    Screen('TextSize', window, 70);
     DrawFormattedText(window, message, 'center', 'center', 1);
     % append the frame
     instructions = add_frame(instructions);

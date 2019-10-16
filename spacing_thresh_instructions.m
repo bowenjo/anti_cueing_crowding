@@ -23,15 +23,25 @@ function [instructions] = spacing_thresh_instructions()
     [cueIndex, postCueIndex] = CB.get_cue(1);
     
     instructions = [];
+    
     % ===========
-    % 1. Stimulus
+    % 1. Part II intro
     % ===========
+    message = ['Part II'];
+    Screen('TextSize', window, 70);
+    DrawFormattedText(window, message, 'center', 'center', 1);
+    instructions = add_frame(instructions);
+    sca;
+    
+    % ===========
+    % 2. Stimulus
+    % ===========
+    [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     [stimuli, dests] = CB.make_stimuli(1, cueIndex);
     CB.draw_fixation(.25);
     CB.cue_vlines(0);
     CB.place_stimuli(stimuli, dests);
-    message = ['Part II: Setting a Baseline (Spacing): \n\n' ...
-               'Next, you will do the exact same thing except there will be two ' ...
+    message = ['Next, you will do the exact same thing except there will be two ' ...
                'additional gratings above and below the center grating'...
                '\n \n Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
@@ -40,7 +50,7 @@ function [instructions] = spacing_thresh_instructions()
     sca;
     
     % ===========
-    % 2. Response
+    % 3. Response
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     CB.draw_fixation(.25);
@@ -57,7 +67,7 @@ function [instructions] = spacing_thresh_instructions()
     %TODO: add close-up images of the possible target orientations
     
     % ========
-    % 7. End
+    % 4. End
     % ========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     message = ['The trials will become progressively more difficult. \n \n ' ...

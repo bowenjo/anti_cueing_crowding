@@ -27,10 +27,8 @@ function [instructions] = size_thresh_instructions()
     % 1. Intro
     % =========
     % make the frame
-    message = ['This experiment will be broken up into three parts. \n\n' ...
-               'Part I: Setting a Baseline (Size). \n' ...
-               'Part II: Setting a Baseline (Spacing). \n' ...
-               'Part III: Visual Crowding with Attentional Cueing \n\n\n' ...
+    message = ['Thank you for taking part in this experiment! \n\n' ...
+               'The experiment will be broken up into three parts. \n\n\n' ...
                'Press the space bar to continue'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', 'center', 1);
@@ -44,7 +42,7 @@ function [instructions] = size_thresh_instructions()
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     % make the frame
     CB.draw_fixation(.25);
-    message = ['For the full experiment, please fixate your eyes on the cross ' ...
+    message = ['At all times during a trial, please fixate your eyes on the cross ' ...
                'in the center of the screen. \n\n\n Press the space bar to continue'];  
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
@@ -66,17 +64,26 @@ function [instructions] = size_thresh_instructions()
     % append the frame
     instructions = add_frame(instructions);
     sca;
-          
+    
     % ===========
-    % 5. Stimulus
+    % 5. Part I Intro
+    % ===========
+    [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+    message = ['Part I'];
+    Screen('TextSize', window, 70);
+    DrawFormattedText(window, message, 'center', 'center', 1);
+    instructions = add_frame(instructions);
+    sca;
+    
+    % ===========
+    % 6. Stimulus
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     [stimuli, dests] = CB.make_stimuli(1, cueIndex);
-    CB.draw_fixation(.25);
+    CB.draw_fixation([.35 0 0]);
     CB.cue_vlines(0);
     CB.place_stimuli(stimuli, dests);
-    message = ['Part I: Setting a Baseline (Size): \n\n'...
-               'For this part, a single gratings will appear ' ...
+    message = ['For this part, a single gratings will appear ' ...
                'within the vertical bars on the LEFT side of the screen.'...
                '\n\n\n Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
@@ -85,14 +92,15 @@ function [instructions] = size_thresh_instructions()
     sca;
     
     % ===========
-    % 6. Response
+    % 7. Response
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-    CB.draw_fixation(.25);
+    CB.draw_fixation([0 .35 0]);
     CB.cue_vlines(0);
     message = ['After the gratings are briefly presented: \n\n' ...
                'Press the RIGHT ARROW for a CENTRAL grating facing 45 degrees to the RIGHT of the vertical. \n\n' ...
-               'Press the LEFT ARROW for a CENTRAL grating facing 45 degrees to the LEFT of the vertical. \n\n\n'...
+               'Press the LEFT ARROW for a CENTRAL grating facing 45 degrees to the LEFT of the vertical. \n\n'...
+               'The fixation cross will turn GREEN when you need to make a response. \n\n\n'...
                'Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
@@ -107,7 +115,7 @@ function [instructions] = size_thresh_instructions()
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     message = ['The trials will become progressively more difficult. \n \n ' ...
                'This is normal, and it is OK to guess if you can not make out the orientation of the center grating. \n\n\n' ...
-               'Press the space bar to begin the experiment!'];
+               'Press the space bar to begin some practice trials!'];
            
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', 'center', 1);
