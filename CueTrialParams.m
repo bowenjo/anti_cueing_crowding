@@ -28,8 +28,8 @@ classdef CueTrialParams < handle
         leftKey % the left arrow keycode
         rightKey % the right arrow keycode 
         killKey % kill key code
-        skipKey % skips the block
         pauseKey % pauses a block
+        responseTimeOut % number of seconds to wait for a response
         
         % fixation check info
         fixLoc % the location of the fixation box
@@ -95,6 +95,7 @@ classdef CueTrialParams < handle
             self.pauseKey = KbName('P');
             self.leftKey = KbName('LeftArrow');
             self.rightKey = KbName('RightArrow');
+            self.responseTimeOut = 3;
 
             % fixation info
             fixRadius = angle2pix(self.subjectDistance, ...

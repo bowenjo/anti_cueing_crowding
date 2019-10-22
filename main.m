@@ -225,6 +225,7 @@ if sessionNumber == '1' && spComplete == 'n'
 
     [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 end
+close all
 
 % =====================================
 % Main Experiment 

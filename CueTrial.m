@@ -283,6 +283,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % wait for subject response
             while respToBeMade
                 [~, secs, keyCode] = KbCheck;
+                responseTime = secs - timeStart;
                 if keyCode(self.leftKey)
                     responseKey = self.targetOrientChoice(1);
                     respToBeMade = false;
@@ -297,9 +298,12 @@ classdef CueTrial < TrialModule & CueTrialParams
                     ShowCursor;
                     sca;
                     error('Session terminated');
+                elseif responseTime > self.responseTimeOut
+                    responseKey = NaN;
+                    respToBeMade = false;
                 end
             end
-            responseTime = secs - timeStart;
+            
         end
         
         function [vbl, rsp] = forward(self, idx, vbl, nTrials)
