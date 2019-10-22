@@ -3,6 +3,7 @@ classdef TrialModule < handle
     
     properties
         window % the ptb screen object
+        windowRect
         xCenter % the x-coordinate of the center point
         yCenter % the y-coordinate of the center point
         xRes % screen resolution in the x-dimension 
@@ -18,6 +19,7 @@ classdef TrialModule < handle
             % Construct an instance of this class
             % ---------------------------------------------------
             self.window = window;
+            self.windowRect = windowRect;
             [self.xCenter, self.yCenter] = RectCenter(windowRect);
             [self.xRes, self.yRes] = Screen('WindowSize', window);
             self.expDesign = struct;
@@ -181,19 +183,21 @@ classdef TrialModule < handle
         end
 
 
-        function [] = run(self, nTrials, name)
+        function [i, rsp] = run(self, startIdx, nTrials, name)
             % --------------------------------------------------
             % Runs the experiment block
             % --------------------------------------------------
             % set the experimental design
-            self.set_exp_design(nTrials);
+            if startIdx == 1
+                self.set_exp_design(nTrials);
+            end
             % initialize eyelink
             self.init_eyelink(name, [name '.edf'])
             % run the design for each trial
             vbl = Screen('Flip', self.window);
-            for i = 1:nTrials
+            for i = startIdx:nTrials
                 [vbl, rsp] = self.forward(i, vbl, nTrials);
-                if string(rsp) == "skip"
+                if string(rsp) == "pause" || string(rsp) == "skip"
                     break
                 end
             end

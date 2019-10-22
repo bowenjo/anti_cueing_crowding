@@ -12,12 +12,18 @@ classdef Experiment < handle
     properties
     blocks % struct - blocks of the experiment
     nTrialTracker % struct - the number of trials in each block
+    checkpoint % struct
     end
     
     methods
         function self = Experiment()
             self.blocks = struct;
             self.nTrialTracker = struct;
+            
+            % initialize checkpointing
+            self.checkpoint = struct;
+            self.checkpoint.trial = 1;
+            self.checkpoint.block = '';
         end
         
         function append_block(self, index, Module, nTrials)
@@ -30,15 +36,60 @@ classdef Experiment < handle
             self.nTrialTracker.(index) = nTrials;
         end
         
-        function run(self, blockIndices)
+        function run(self, blockIndices, file)
             if isempty(blockIndices)
                 blockIndices = fields(self.blocks)';
             end
             
-            for key = blockIndices
+            startBlockIdx = 1;
+            % get the checkpointed block index
+            if ~isempty(self.checkpoint.block)
+                for key = blockIndices
+                    if string(key) == self.checkpoint.block
+                        break
+                    else
+                        startBlockIdx = startBlockIdx + 1;
+                    end
+                end
+                % if the checkpointed block is not in the block indices
+                if startBlockIdx-1 == length(blockIndices)
+                    startBlockIdx = 1;
+                end
+            end
+            
+            for key = blockIndices(startBlockIdx:length(blockIndices))
+                % update checkpoint block
+                self.checkpoint.block = key;
+                % save the experiment
+                if ~isempty(file)
+                    save(file, 'self')
+                end
+                
+                % get the block info
                 block = self.blocks.(string(key));
+                startTrial = self.checkpoint.trial;
                 nTrials = self.nTrialTracker.(string(key));
-                block.run(nTrials, key);
+                
+                % run the block
+                [stopTrial, rsp] = block.run(startTrial, nTrials, key);
+                
+                % if experiment was paused part way
+                while stopTrial ~= nTrials && string(rsp) == "pause" 
+                    % update checkpoint and save
+                    self.checkpoint.trial = stopTrial;
+                    if ~isempty(file)
+                        save(file, 'self')
+                    end
+                    
+                    % pause the screen
+                    Pause = WaitScreen(block.window, block.windowRect, ...
+                        'Paused', 70, []);
+                    Pause.run(0, 0, 0);
+                    % continue running the experiment
+                    stopTrial = block.run(stopTrial, nTrials, key);
+                end
+                % reset the trial tracker
+                self.checkpoint.trial = 1;
             end
             Eyelink('StopRecording');
         end

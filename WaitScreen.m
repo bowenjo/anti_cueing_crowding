@@ -29,9 +29,9 @@ classdef WaitScreen
             self.textSize = textSize;
             self.customFrames = customFrames;
             self.nFrames = size(self.customFrames);
-            self.nextKey = KbName('space');
-            self.backKey = KbName('DELETE');
-            self.exitKey = KbName('ESCAPE');
+            self.nextKey = KbName('SPACE');
+            self.backKey = KbName('BACKSPACE');
+            self.exitKey = KbName('Q');
             
             [self.xCenter, self.yCenter] = RectCenter(windowRect);
             [self.xRes, self.yRes] = Screen('WindowSize', window);
@@ -61,7 +61,7 @@ classdef WaitScreen
         end
         
         
-        function run(self, nTrials, name)
+        function [stopTrial, rsp] = run(self, startTrial, nTrials, name)
             % ----------------------------------------------------
             % Runs the wait screen/slides until a key is pressed
             % ----------------------------------------------------
@@ -104,11 +104,13 @@ classdef WaitScreen
                         Eyelink('StopRecording')
                         ShowCursor;
                         sca;
-                        return
+                        error('Session terminated');
                     else
                         responseToBeMade = 1;
                     end
                 end
+                stopTrial = nTrials;
+                rsp = '';
             end    
         end
         

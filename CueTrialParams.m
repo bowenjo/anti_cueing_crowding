@@ -27,8 +27,9 @@ classdef CueTrialParams < handle
         % key response info
         leftKey % the left arrow keycode
         rightKey % the right arrow keycode 
-        escapeKey % escape key code
+        killKey % kill key code
         skipKey % skips the block
+        pauseKey % pauses a block
         
         % fixation check info
         fixLoc % the location of the fixation box
@@ -90,14 +91,16 @@ classdef CueTrialParams < handle
             self.isHash = false; 
             
             % response info
-            self.escapeKey = KbName('ESCAPE');
-            self.skipKey = KbName('S');
+            self.killKey = KbName('Q');
+            self.pauseKey = KbName('P');
             self.leftKey = KbName('LeftArrow');
             self.rightKey = KbName('RightArrow');
-            
+
             % fixation info
-            self.fixLoc =  [self.xCenter-40, self.yCenter-40, ...
-                            self.xCenter+40, self.yCenter+40]; 
+            fixRadius = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, 3);
+            self.fixLoc =  [self.xCenter-fixRadius, self.yCenter-fixRadius, ...
+                            self.xCenter+fixRadius, self.yCenter+fixRadius]; 
         end
         
         function set_position_params(self)

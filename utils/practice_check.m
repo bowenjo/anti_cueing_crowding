@@ -5,7 +5,7 @@ function [] = practice_check(Exp, blocks, thresh, threshIndex, threshType)
 
     performanceNotMet = true;
     while performanceNotMet
-        Exp.run(blocks);
+        Exp.run(blocks, '');
         rawData = Exp.save_run('', blocks);
         processedData = analyze_results(rawData, threshType, {'correct'}, {}, [], @mean); 
         

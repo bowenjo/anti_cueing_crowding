@@ -289,14 +289,14 @@ classdef CueTrial < TrialModule & CueTrialParams
                 elseif keyCode(self.rightKey)
                     responseKey = self.targetOrientChoice(2);
                     respToBeMade = false;
-                elseif keyCode(self.skipKey)
-                    responseKey = "skip";
+                elseif keyCode(self.pauseKey)
+                    responseKey = "pause";
                     respToBeMade = false;
-                elseif keyCode(self.escapeKey)
+                elseif keyCode(self.killKey)
                     Eyelink('StopRecording')
                     ShowCursor;
                     sca;
-                    return
+                    error('Session terminated');
                 end
             end
             responseTime = secs - timeStart;
