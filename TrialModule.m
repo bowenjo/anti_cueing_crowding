@@ -10,7 +10,6 @@ classdef TrialModule < handle
         yRes % screen resolution in the y-dimension
         el % the eyelink structure
         expDesign % the experiment design structure
-        results % the results matrix
     end
     
     methods
