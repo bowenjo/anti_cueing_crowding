@@ -73,9 +73,12 @@ classdef GratingThreshTrial < CueTrial
             
             % end the experiment if its a practice trial and the number of 
             % correct trials in a row are met
-            if self.practice && self.expDesign.(string(self.threshType))(idx) < self.initSize
-                rsp = "skip";
-                return
+            if idx > 1
+                if self.practice && self.expDesign.(string(self.threshType))(idx) < ...
+                        self.expDesign.(string(self.threshType))(idx-1)
+                    rsp = "skip";
+                    return
+                end
             end
             
             [~, placeIdx] = self.get_cue(idx);

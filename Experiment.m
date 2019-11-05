@@ -72,9 +72,8 @@ classdef Experiment < handle
                 
                 % run the block
                 [stopTrial, rsp] = block.run(startTrial, nTrials, key);
-                
                 % if experiment was paused part way
-                while stopTrial ~= nTrials && string(rsp) == "pause" 
+                while stopTrial < nTrials && string(rsp) == "pause" 
                     % update checkpoint and save
                     self.checkpoint.trial = stopTrial;
                     if ~isempty(file)
@@ -86,7 +85,7 @@ classdef Experiment < handle
                         'Paused', 70, []);
                     Pause.run(0, 0, 0);
                     % continue running the experiment
-                    stopTrial = block.run(stopTrial, nTrials, key);
+                    [stopTrial, rsp] = block.run(stopTrial+1, nTrials, key);
                 end
                 % reset the trial tracker
                 self.checkpoint.trial = 1;
