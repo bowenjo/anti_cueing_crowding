@@ -89,10 +89,10 @@ if sessionNumber == '1' && spComplete == 'n'
         SzExp = Experiment();
 
         % size grating threshold paramters
-        nSzTrials = 100;
-        initSize = 1.5;
-        stepSize = .1;
-        szFixColors = [.35 0  0; .35 0 0; 0 .35 0; .35 0 0]; 
+        nSzTrials = 100; % number of trials for the size staircase
+        initSize = 1.5; % initial grating diameter (DVA)
+        stepSize = .1; % staicase step size (DVA)
+        szFixColors = [.35 0  0; .35 0 0; 0 .35 0; .35 0 0]; % fixation cross RGB colors
 
         % size grating experiment instructions
         szInstruct = load('instructions/size_thresh_instruction_frames.mat');
@@ -131,7 +131,7 @@ if sessionNumber == '1' && spComplete == 'n'
         SzBlock = SzExp.blocks.main_block;
     end
         
-    % get the threshold diameter
+    % fit a psychometric function to the size experiemnt and get the threshold diameter
     pInit.a = .75;
     pFitSize = SzBlock.get_size_thresh(pInit, szResults);
     diameter = pFitSize.t + pFitSize.t/2;
@@ -142,10 +142,10 @@ if sessionNumber == '1' && spComplete == 'n'
     SpExp = Experiment();
     
     % spacing grating threshold parameters
-    nSpTrials = 200;
+    nSpTrials = 200; % number of trials in the staircase
     initSpacing = 5; % initial target-flanker spacing of grating in degrees
     stepSpacing = .2; % spacing step size in degrees
-    spFixColors = [.25; .25; .25; 0];
+    spFixColors = [.25; .25; .25; 0]; % grey-scale values for the fixation cross
     
     % spacing grating experiment instructions
     spInstruct = load('instructions/spacing_thresh_instruction_frames.mat');
@@ -193,7 +193,7 @@ else
     spResults = spResults.results;
 end
 
-
+% fit a psychometric function to spacing range  experiment 
 SpBlock = SpExp.blocks.main_block;
 % diameter
 diameter = SpBlock.diameter;
@@ -207,9 +207,8 @@ pInit.a = .80;
 pInit.t = 3;
 pFitUpper = SpBlock.get_size_thresh(pInit, spResults);
 upperSpacing = pFitUpper.t + pFitUpper.t/2;
-
+% verify the range of spacings
 if sessionNumber == '1' && spComplete == 'n'
-    % verify the range of spacings
     sca;
     fprintf('Size: %4.2f; Lower Spacing: %4.2f; Upper Spacing: %4.2f ', ...
         [diameter, lowerSpacing, upperSpacing]);
@@ -337,7 +336,6 @@ if skipPractice == 'n'
 end
 % run full experiment
 Exp.run(blockIndices(7:length(blockIndices)), [sessionDir '/Experiment.mat']);     
-
 
 sca;
 % save the full experiment 
