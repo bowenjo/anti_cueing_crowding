@@ -90,7 +90,7 @@ if sessionNumber == '1' && spComplete == 'n'
 
         % size grating threshold paramters
         nSzTrials = 100; % number of trials for the size staircase
-        initSize = 1.5; % initial grating diameter (DVA)
+        initSize = 1.8; % initial grating diameter (DVA)
         stepSize = .1; % staicase step size (DVA)
         szFixColors = [.35 0  0; .35 0 0; 0 .35 0; .35 0 0]; % fixation cross RGB colors
 
@@ -134,7 +134,22 @@ if sessionNumber == '1' && spComplete == 'n'
     % fit a psychometric function to the size experiemnt and get the threshold diameter
     pInit.a = .75;
     pFitSize = SzBlock.get_size_thresh(pInit, szResults);
-    diameter = pFitSize.t + pFitSize.t/2;
+    diameter = max(1.5 * pFitSize.t, 1.5*min(szResults.grating_size));
+    
+    if szComplete == 'n'
+        sca;
+        fprintf('Size: %4.2f', diameter);
+        pauseBeforeExp = true;
+        while pauseBeforeExp
+            continueToExp = input('\n Continue: y/n ?', 's');
+            if continueToExp== 'n'
+                return
+            elseif continueToExp == 'y' 
+                pauseBeforeExp = false;
+            end
+        end
+        [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+    end
     
     % =======================================
     % Grating Spacing Threshold Experiment
@@ -142,7 +157,7 @@ if sessionNumber == '1' && spComplete == 'n'
     SpExp = Experiment();
     
     % spacing grating threshold parameters
-    nSpTrials = 200; % number of trials in the staircase
+    nSpTrials = 150; % number of trials in the staircase
     initSpacing = 5; % initial target-flanker spacing of grating in degrees
     stepSpacing = .2; % spacing step size in degrees
     spFixColors = [.25; .25; .25; 0]; % grey-scale values for the fixation cross
@@ -238,7 +253,6 @@ if continueFromCheckpoint == 'n'
     nTrialsPerBlock = 120;
     nBlocks = nTotalTrials/nTrialsPerBlock;
     nPracticeTrials = 32;
-    practicePerformanceThreshold = 0.75;
 
     % timing information
     isiTime = 1200/1000; % pre-cue time
@@ -327,6 +341,7 @@ end
 
 % run the experiment
 blockIndices = fields(Exp.blocks)';
+practicePerformanceThreshold = 0.75;
 
 if skipPractice == 'n'
     Exp.run(blockIndices(1:2), '')% run instructions/slowed-down example

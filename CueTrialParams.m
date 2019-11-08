@@ -29,6 +29,7 @@ classdef CueTrialParams < handle
         rightKey % the right arrow keycode 
         killKey % kill key code
         pauseKey % pauses a block
+        skipKey % skips a block
         responseTimeOut % number of seconds to wait for a response
         
         % fixation check info
@@ -59,7 +60,7 @@ classdef CueTrialParams < handle
             self.screenNumber = max(self.screens);
             
             % scree setup info
-            self.subjectDistance = 49; 
+            self.subjectDistance = 50; 
             self.physicalWidthScreen = 43; 
 
             % cue information
@@ -93,6 +94,7 @@ classdef CueTrialParams < handle
             % response info
             self.killKey = KbName('Q');
             self.pauseKey = KbName('P');
+            self.skipKey = KbName('S');
             self.leftKey = KbName('LeftArrow');
             self.rightKey = KbName('RightArrow');
             self.responseTimeOut = 3;

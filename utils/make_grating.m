@@ -48,13 +48,11 @@ function [gratings] = make_grating(window, orientations, diameter, ...
     end
     
     
-    
-    
     function imageMatrix = make_grating_texture(orientation)
         tiltInRadians = orientation * pi / 180;
         shift_x = cos(tiltInRadians) * radiansPerPixel;
         shift_y = sin(tiltInRadians) * radiansPerPixel;
-        phase = pi/2;
+        phase = rand * (2*pi);
         imageMatrix = (gray + absoluteDifferenceBetweenWhiteAndGray * ... 
             michelsonContrast * sin(shift_x*x + shift_y*y+phase).* circularMaskMatrix .* G_mask_rescaled);
     end

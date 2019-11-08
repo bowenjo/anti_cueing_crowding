@@ -290,6 +290,9 @@ classdef CueTrial < TrialModule & CueTrialParams
                 elseif keyCode(self.rightKey)
                     responseKey = self.targetOrientChoice(2);
                     respToBeMade = false;
+                elseif keyCode(self.skipKey)
+                    responseKey = "skip";
+                    respToBeMade = false;
                 elseif keyCode(self.pauseKey)
                     responseKey = "pause";
                     respToBeMade = false;
