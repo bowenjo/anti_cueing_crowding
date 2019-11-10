@@ -37,7 +37,7 @@ function [instructions] = spacing_thresh_instructions()
     % 2. Stimulus
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-    [stimuli, dests] = CB.make_stimuli(1, cueIndex);
+    [stimuli, dests] = CB.make_stimuli(1, postCueIndex);
     CB.draw_fixation(.25);
     CB.cue_vlines(0);
     CB.place_stimuli(stimuli, dests);
@@ -79,7 +79,7 @@ function [instructions] = spacing_thresh_instructions()
     instructions = add_frame(instructions); 
     sca;
     
-    save('instructions/spacing_thresh_instruction_frames.mat', 'instructions')
+    save('instructions/spacing_thresh_instruction_frames_right.mat', 'instructions')
     
 
     function instructions = add_frame(instructions)

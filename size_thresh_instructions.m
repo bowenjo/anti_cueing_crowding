@@ -79,12 +79,12 @@ function [instructions] = size_thresh_instructions()
     % 6. Stimulus
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-    [stimuli, dests] = CB.make_stimuli(1, cueIndex);
+    [stimuli, dests] = CB.make_stimuli(1, postCueIndex);
     CB.draw_fixation([.35 0 0]);
     CB.cue_vlines(0);
     CB.place_stimuli(stimuli, dests);
-    message = ['For this part, a single gratings will appear ' ...
-               'within the vertical bars on the LEFT side of the screen.'...
+    message = ['For this part, a single grating will appear ' ...
+               'within the vertical bars on the RIGHT side of the screen.'...
                '\n\n\n Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
@@ -122,7 +122,7 @@ function [instructions] = size_thresh_instructions()
     instructions = add_frame(instructions); 
     sca;
     
-    save('instructions/size_thresh_instruction_frames.mat', 'instructions')
+    save('instructions/size_thresh_instruction_frames_right.mat', 'instructions')
     
 
     function instructions = add_frame(instructions)
