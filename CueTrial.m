@@ -102,7 +102,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.expDesign.valid = validOrdered(permIndices);
             
             % initialize result fields
-            for key = {'response', 'RT', 'fix_check'}
+            for key = {'response', 'RT', 'pre_fix_check', 'post_fix_check'}
                 self.expDesign.(string(key)) = nan(1,nTrials);
             end
 
@@ -320,13 +320,15 @@ classdef CueTrial < TrialModule & CueTrialParams
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
-            fixationChecks = zeros(1, self.stimFrames);
+            preCueFixationChecks = zeros(1,self.isiFrames);
+            postCueFixationChecks = zeros(1, self.stimFrames);
             % Eyelink stuff
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation(.25);
                 self.cue_vlines(0)
+                preCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
@@ -346,7 +348,7 @@ classdef CueTrial < TrialModule & CueTrialParams
                 self.draw_fixation(.25)
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
-                fixationChecks(i) = check_fix(self.el, self.fixLoc);
+                postCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
@@ -360,10 +362,12 @@ classdef CueTrial < TrialModule & CueTrialParams
             vbl = Screen('Flip', self.window);
 
             % append the response data
-            fix = mean(fixationChecks == 1);
+            preCueFix = mean(preCueFixationChecks == 1);
+            postCueFix = mean(postCueFixationChecks == 1);
             self.expDesign.response(idx) = rsp;
             self.expDesign.RT(idx) = rt;
-            self.expDesign.fix_check(idx) = fix;  
+            self.expDesign.pre_fix_check(idx) = preCueFix;
+            self.expDesign.post_fix_check(idx) = postCueFix;  
             Screen('Close', stimuli)
         end 
         
@@ -377,8 +381,8 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
             
             % dump results for block into the rest of the blocks
-            keys = {'response', 'RT', 'fix_check', 'T', 'spacing', ...
-                    'valid', 'soa_time', 'correct'};
+            keys = {'response', 'RT', 'pre_fix_check', 'post_fix_check', ...
+                    'T', 'spacing', 'valid', 'soa_time', 'correct'};
 
         end     
         

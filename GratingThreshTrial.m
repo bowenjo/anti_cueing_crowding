@@ -88,13 +88,15 @@ classdef GratingThreshTrial < CueTrial
             elseif self.threshType == "spacing"
                 [stimuli, dests] = self.make_stimuli(idx, placeIdx);
             end
-
-            fixationChecks = zeros(1, self.stimFrames);
+            
+            preFixationChecks = zeros(1, self.isiFrames);
+            postFixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
             for i = 1:self.isiFrames
                 self.draw_fixation(self.fixationColors(1, :));
                 self.cue_vlines(0)
+                preFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
@@ -102,7 +104,7 @@ classdef GratingThreshTrial < CueTrial
                 self.draw_fixation(self.fixationColors(2, :))
                 self.cue_vlines(0)
                 self.place_stimuli(stimuli, dests);
-                fixationChecks(i) = check_fix(self.el, self.fixLoc);
+                postFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             
@@ -117,10 +119,12 @@ classdef GratingThreshTrial < CueTrial
             Screen('Flip', self.window, vbl+self.ifi/2);
 
             % append the response data
-            fix = mean(fixationChecks == 1);
+            preFix = mean(preFixationChecks == 1);
+            postFix = mean(postFixationChecks == 1);
             self.expDesign.response(idx) = rsp;
             self.expDesign.RT(idx) = rt;
-            self.expDesign.fix_check(idx) = fix;
+            self.expDesign.pre_fix_check(idx) = preFix;
+            self.expDesign.post_fix_check(idx) = postFix;
             Screen('Close', stimuli)     
         end
         
@@ -129,7 +133,8 @@ classdef GratingThreshTrial < CueTrial
             % dumps the results of the block to the full experiment
             % ------------------------------------------------------
             self.expDesign.correct = self.expDesign.response == self.expDesign.T;
-            keys = {'response', 'RT', 'fix_check', 'T', self.threshType, 'correct'};            
+            keys = {'response', 'RT', 'pre_fix_check', 'post_fix_check', ...
+                    'T', self.threshType, 'correct'};            
 
         end  
         
