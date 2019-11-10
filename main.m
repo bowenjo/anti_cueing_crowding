@@ -42,6 +42,18 @@ else
     szComplete = 'y'; spComplete = 'y';
 end
 
+% Ask for the side of the screen to present the baseline stimuli
+if sessionNumber == '1' && szComplete == 'n'
+    baselineDisplaySide = input('Baseline Display Side? r/l: ', 's');
+    if baselineDisplaySide == 'r'
+        baselineDisplay = [0 1];
+        szInstruct = load('instructions/size_thresh_instruction_frames_right.mat');
+    elseif baselineDisplaySide == 'l'
+        baselineDisplay = [1 0];
+        szInstruct = load('instructions/size_thresh_instruction_frames_left.mat');
+    end
+end
+
 % if an experiment already exists
 continueFromCheckpoint = 'n'; skipPractice = 'n';
 if exist([sessionDir '/Experiment.mat'], 'file') && spComplete == 'y'
@@ -95,18 +107,19 @@ if sessionNumber == '1' && spComplete == 'n'
         szFixColors = [.35 0  0; .35 0 0; 0 .35 0; .35 0 0]; % fixation cross RGB colors
 
         % size grating experiment instructions
-        szInstruct = load('instructions/size_thresh_instruction_frames.mat');
         szInstruct = szInstruct.instructions;
         szInstructBlock = WaitScreen(window, windowRect, '', 70, szInstruct);
 
         % size grating experiment blocks
         SzPractice = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
-                            stepSize, nUp, nPracticeStop, szFixColors, stimTime, true);
+                            stepSize, nUp, nPracticeStop, szFixColors, stimTime, ...
+                            baselineDisplay, true);
         PracticeWait = Wait;
         PracticeWait.displayText = 'Practice Complete!';
 
         SzBlock = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
-                            stepSize, nUp, nDown, szFixColors, stimTime, false);                    
+                            stepSize, nUp, nDown, szFixColors, stimTime, ...
+                            baselineDisplay, false);                    
         EndWait = Wait;
         EndWait.displayText = 'You Are Done With Part I!';
 
@@ -129,6 +142,7 @@ if sessionNumber == '1' && spComplete == 'n'
         szResults = load([sessionDir '/sz_threshold_results.mat']);
         szResults = szResults.results;
         SzBlock = SzExp.blocks.main_block;
+        baselineDisplay = SzBlock.cuedLocProb;
     end
         
     % fit a psychometric function to the size experiemnt and get the threshold diameter
@@ -163,13 +177,17 @@ if sessionNumber == '1' && spComplete == 'n'
     spFixColors = [.25; .25; .25; 0]; % grey-scale values for the fixation cross
     
     % spacing grating experiment instructions
-    spInstruct = load('instructions/spacing_thresh_instruction_frames.mat');
+    if baselineDisplay(1) == 0
+        spInstruct = load('instructions/spacing_thresh_instruction_frames_right.mat');
+    else
+        spInstruct = load('instructions/spacing_thresh_instruction_frames_left.mat');
+    end 
     spInstruct = spInstruct.instructions;
     spInstructBlock = WaitScreen(window, windowRect, '', 70, spInstruct);
-
     % grating spacing experiment blocks
     SpPractice= GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
-                        stepSpacing, nUp, nPracticeStop, spFixColors, stimTime, true);
+                        stepSpacing, nUp, nPracticeStop, spFixColors, stimTime, ...
+                        baselineDisplay, true);
     SpPractice.diameter = diameter; % add the threshold diameter
     SpPractice.spatialFrequency = SpPractice.cyclesPerGrating / diameter;
     SpPractice.set_position_params();
@@ -178,7 +196,8 @@ if sessionNumber == '1' && spComplete == 'n'
     PracticeWait.displayText = 'Practice Complete!';
     
     SpBlock = GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
-                        stepSpacing, nUp, nDown, spFixColors, stimTime, false);
+                        stepSpacing, nUp, nDown, spFixColors, stimTime, ...
+                        baselineDisplay, false);
     SpBlock.diameter = diameter; % add the threshold diameter
     SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
     SpBlock.set_position_params();

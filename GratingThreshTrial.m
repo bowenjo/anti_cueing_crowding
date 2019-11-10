@@ -15,12 +15,12 @@ classdef GratingThreshTrial < CueTrial
     methods
         function self = GratingThreshTrial(window, windowRect, ...
                 threshType, initSize, stepSize, nUp, nDown, ...
-                fixationColors, stimTime, practice)
+                fixationColors, stimTime, displaySide, practice)
             % -------------------------------------------------------
             % Construct an instance of this class
             % -------------------------------------------------------
-            self = self@CueTrial(window, windowRect, 1, [0 1], ...
-                1, [1], [Inf], 1, 0, 0, stimTime);
+            self = self@CueTrial(window, windowRect, 1, displaySide, ...
+                0, [1], [Inf], 1, 0, 0, stimTime);
             
             self.threshType = threshType;
             self.initSize = initSize;
