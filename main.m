@@ -85,7 +85,7 @@ stimTime = 133/1000; % stimulus presentation time
 % Baseline: Grating Size and Spacing Range
 % ========================================
 % psychometric fit initialization
-pInit.t = 1; % estimated threshold spacing
+pInit.t = 1.2; % init threshold grating size
 pInit.b = 1; % estimated slope
 pInit.g = 0.50; % chance percent correct
 
@@ -144,25 +144,37 @@ if sessionNumber == '1' && spComplete == 'n'
         SzBlock = SzExp.blocks.main_block;
         baselineDisplay = SzBlock.cuedLocProb;
     end
-        
-    % fit a psychometric function to the size experiemnt and get the threshold diameter
-    pInit.a = .75;
-    pFitSize = SzBlock.get_size_thresh(pInit, szResults);
-    diameter = max(1.5 * pFitSize.t, 1.5*min(szResults.grating_size));
     
-    if szComplete == 'n'
-        sca;
-        fprintf('Size: %4.2f', diameter);
-        pauseBeforeExp = true;
-        while pauseBeforeExp
-            continueToExp = input('\n Continue: y/n ?', 's');
-            if continueToExp== 'n'
-                return
-            elseif continueToExp == 'y' 
+    pauseBeforeExp = true;
+    while pauseBeforeExp
+        % fit a psychometric function to the size experiment and get the threshold diameter
+        nSzTrials = SzExp.nTrialTracker.main_block;
+        pInit.a = .75;
+        pFitSize = SzBlock.get_size_thresh(pInit, szResults);
+        diameter = max(1.5 * pFitSize.t, 1.5*mean(...
+            szResults.grating_size(nSzTrials-nSzTrials/5:nSzTrials)));
+        % check to make sure the psychometric function fits the data 
+        if szComplete == 'n'
+            sca;
+            fprintf('Size: %4.2f', diameter);
+            continueToExp = input('\n Continue to Part II (c) or repeat Part I (r). c/r?', 's');
+            % Repeat Part I 
+            if continueToExp== 'r'
+                PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+                SzExp.checkpoint.block = {'main_block'};
+                SzExp.run([],'');
+                save([sessionDir '/SzThresholdExperiment.mat'], 'SzExp')
+                szResults = SzExp.save_run([sessionDir '/sz_threshold_results.mat'], ...
+                    szBlockIndices(3:length(szBlockIndices)));
+            % continue to Part II    
+            elseif continueToExp == 'c' 
                 pauseBeforeExp = false;
+                [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
             end
-        end
-        [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+        else
+            pauseBeforeExp = false;
+        end  
+        close all
     end
     
     % =======================================
@@ -227,38 +239,48 @@ else
     spResults = spResults.results;
 end
 
-% fit a psychometric function to spacing range  experiment 
-SpBlock = SpExp.blocks.main_block;
-% diameter
-diameter = SpBlock.diameter;
-% lower bound 
-pInit.a = .55;
-pInit.t = 1;
-pFitLower = SpBlock.get_size_thresh(pInit, spResults);
-lowerSpacing = max(diameter, pFitLower.t); % physical min or ~55% performance
-% upper bound
-pInit.a = .80;
-pInit.t = 3;
-pFitUpper = SpBlock.get_size_thresh(pInit, spResults);
-upperSpacing = pFitUpper.t + pFitUpper.t/2;
-% verify the range of spacings
-if sessionNumber == '1' && spComplete == 'n'
-    sca;
-    fprintf('Size: %4.2f; Lower Spacing: %4.2f; Upper Spacing: %4.2f ', ...
+pauseBeforeExp = true;
+while pauseBeforeExp
+    % fit a psychometric function to spacing range  experiment 
+    SpBlock = SpExp.blocks.main_block;
+    % diameter
+    diameter = SpBlock.diameter;
+    % lower bound 
+    pInit.a = .55;
+    pInit.t = 1.5; % init lower thresh 
+    pFitLower = SpBlock.get_size_thresh(pInit, spResults);
+    lowerSpacing = max(diameter, pFitLower.t); % physical min or ~55% performance
+    % upper bound
+    pInit.a = .80;
+    pInit.t = 4; % init upper thresh
+    pFitUpper = SpBlock.get_size_thresh(pInit, spResults);
+    upperSpacing = pFitUpper.t + pFitUpper.t/2;
+    
+    % verify the range of spacings
+    if sessionNumber == '1' && spComplete == 'n'
+        sca;
+        fprintf('Size: %4.2f; Lower Spacing: %4.2f; Upper Spacing: %4.2f ', ...
         [diameter, lowerSpacing, upperSpacing]);
-    pauseBeforeExp = true;
-    while pauseBeforeExp
-        continueToExp = input('\n Continue: y/n ?', 's');
-        if continueToExp== 'n'
-            return
-        elseif continueToExp == 'y' 
+        continueToExp = input('\n Continue to Part III (c) or repeat Part II (r): c/r?', 's');
+        % repeat Part II
+        if continueToExp== 'r'
+            PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+            SpExp.checkpoint.block = {'main_block'};
+            SpExp.run([],'');
+            save([sessionDir '/SpThresholdExperiment.mat'], 'SpExp')
+            spResults = SpExp.save_run([sessionDir '/sp_threshold_results.mat'], ...
+                spBlockIndices(3:length(spBlockIndices)));
+        % continue to Part III
+        elseif continueToExp == 'c' 
             pauseBeforeExp = false;
+            [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
         end
+    else
+        pauseBeforeExp = false;
     end
-
-    [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+    close all
 end
-close all
+
 
 % =====================================
 % Main Experiment 
