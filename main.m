@@ -64,7 +64,7 @@ if exist([sessionDir '/Experiment.mat'], 'file') && spComplete == 'y'
         if continueFromCheckpoint == 'n' 
             pauseBeforeExp = false;
         elseif continueFromCheckpoint == 'y' 
-            pauseBeforeExp = false;
+            pauseBeforeExp = false; 
             restartBlock = input('Restart block? y/n: ', 's');
             skipPractice = input('Skip the practice trials? y/n: ', 's');
         end
@@ -254,7 +254,7 @@ while pauseBeforeExp
     pInit.a = .80;
     pInit.t = 4; % init upper thresh
     pFitUpper = SpBlock.get_size_thresh(pInit, spResults);
-    upperSpacing = pFitUpper.t + pFitUpper.t/2;
+    upperSpacing = 1.5 * pFitUpper.t;
     
     % verify the range of spacings
     if sessionNumber == '1' && spComplete == 'n'
@@ -285,6 +285,8 @@ end
 % =====================================
 % Main Experiment 
 % =====================================
+spacingChoices = [Inf linspace(lowerSpacing, upperSpacing, 7)];
+
 if continueFromCheckpoint == 'n'
     % start a new experiment
     Exp = Experiment();
@@ -305,8 +307,7 @@ if continueFromCheckpoint == 'n'
     cuedLocProb = [.5 .5]; % probability of cue location
     cueValidProb = .8;
 
-    % spacing choice
-    spacingChoices = [Inf linspace(lowerSpacing, upperSpacing, 7)];
+    % spacing probabilities
     spacingProb = ones(1, length(spacingChoices)) / length(spacingChoices);
 
     % instructions
@@ -378,6 +379,8 @@ else
     if restartBlock == 'y'
         Exp.checkpoint.trial = 1;
     end
+    checkpointBlock = Exp.checkpoint.block;
+    checkpointTrial = Exp.checkpoint.trial;
 end
 
 % run the experiment
@@ -389,6 +392,11 @@ if skipPractice == 'n'
     % run a couple practice blocks and check performance
     practice_check(Exp, blockIndices(3:6), practicePerformanceThreshold, ...
         length(spacingChoices), 'spacing');
+    % load back in the checkpoint
+    if continueFromCheckpoint == 'y'
+        Exp.checkpoint.block = checkpointBlock;
+        Exp.checkpoint.trial = checkpointTrial;
+    end
 end
 % run full experiment
 Exp.run(blockIndices(7:length(blockIndices)), [sessionDir '/Experiment.mat']);     
