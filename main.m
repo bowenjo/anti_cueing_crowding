@@ -39,7 +39,7 @@ if sessionNumber == '1'
         spComplete = input('SPACING baseline already exits. Use it? y/n: ', 's'); 
     end
 else
-    if exist([subjectDir '/1'])
+    if exist([subjectDir '/1'], 'dir')
         szComplete = 'y'; spComplete = 'y';
     else
         error(['The subject directory (' subjectID ') does not have a 1st session']);
