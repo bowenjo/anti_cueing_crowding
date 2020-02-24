@@ -39,7 +39,11 @@ if sessionNumber == '1'
         spComplete = input('SPACING baseline already exits. Use it? y/n: ', 's'); 
     end
 else
-    szComplete = 'y'; spComplete = 'y';
+    if exist([subjectDir '/1'])
+        szComplete = 'y'; spComplete = 'y';
+    else
+        error(['The subject directory (' subjectID ') does not have a 1st session']);
+    end
 end
 
 % Ask for the side of the screen to present the baseline stimuli
