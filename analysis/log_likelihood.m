@@ -1,5 +1,5 @@
 function logLikelihood = log_likelihood(fitParams, results, fn)
-%LOG_LIKELIHOOD_PSYCH 
+%LOG_LIKELIHOOD 
 % Gets the log likelihood between x and fn fit with params  
     % fn - function 
     % fitParams - fitted parameter struc for the function fn

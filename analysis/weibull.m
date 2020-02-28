@@ -5,8 +5,9 @@ function y = weibull(p, x)
         % p.b - slope of the function
         % p.g - performance at chance
         % p.a - performance at threshold (y=p.a if x=p.t)
+        % p.s - performance at asymptote
     % x - vector of x values
-    k = (-log((1-p.a)/(1-p.g)))^(1/p.b);
-    y = 1 - (1-p.g)*exp(- (k*x/p.t).^p.b);
+    k = (-log((p.s-p.a)/(p.s-p.g)))^(1/p.b);
+    y = p.s - (p.s-p.g)*exp(- (k*x/p.t).^p.b);
 end
 

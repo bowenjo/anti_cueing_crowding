@@ -1,4 +1,5 @@
-function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, filterValues, fn)
+function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, ...
+    filterValues, filterRelationOperators, fn)
     % load in the results structure and calculate mean yKey values per xKey
     % Paramaters
     %   results - struct - results structure with fields 
@@ -25,10 +26,13 @@ function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, fil
             % set the filter keys and values
             fKeys = filterKeys;
             fValues = filterValues;
+            fOperators = filterRelationOperators;
+            % add on the filter keys, values, operators, for the independent variable
             fKeys(nFilters+1) = {xKey};
             fValues(nFilters+1) = xValues(i);
+            fOperators(nFilters+1) = {'eq'};
             % filter by keys and values
-            filterIndices = filter_by_index(results, fKeys, fValues);
+            filterIndices = filter_by_index(results, fKeys, fValues, fOperators);
             analyzedResults.(string(yKey)) = ...
                 [analyzedResults.(string(yKey)) fn(yValues(filterIndices))]; 
         end
@@ -36,11 +40,16 @@ function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, fil
 
 end
 
-function filterIndices = filter_by_index(results, filterKeys, filterValues)
+function filterIndices = filter_by_index(results, filterKeys, filterValues, ...
+    filterRelationOperators)
     filterIndices = ones(1, length(results.(string(filterKeys(1)))));
     for i = 1:length(filterKeys)
-        valueFilterIndices =  results.(string(filterKeys(i)))== filterValues(i);
-        filterIndices = filterIndices .* valueFilterIndices;
+        % only pass non-NaN values
+        nanFilterIndices = 1 - isnan(results.(string(filterKeys(i))));
+        % filter by keys and values
+        valueFilterIndices =  feval(string(filterRelationOperators(i)), ...
+            results.(string(filterKeys(i))), filterValues(i));
+        filterIndices = nanFilterIndices .* filterIndices .* valueFilterIndices;
     end
     filterIndices = logical(filterIndices);
 end

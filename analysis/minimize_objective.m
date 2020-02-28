@@ -1,9 +1,9 @@
-function paramsFit = minimize_objective(variables, objective_fn, paramsInit, results, fn)
+function paramsFit = minimize_objective(variables, A, b, objective_fn, ...
+    paramsInit, results, fn)
     % finds optimal variables to minimize objective_fn
         % variables - cell array - variables to find optimal solution
-        % fn - function to minimize
+        % objective_fn - function to minimize
         % paramsInit - struct - initial parameter values
-        % varargin - extra variables to pass to fn
     
     % format the variables into a vector
     x0 = [];
@@ -13,7 +13,7 @@ function paramsFit = minimize_objective(variables, objective_fn, paramsInit, res
     
     % fit the params
     paramsFit = paramsInit;
-    fitValues = fminsearch(@construct_fn, x0);
+    fitValues = fmincon(@construct_fn, x0, A, b);
     set_params(fitValues)
     
     function y = construct_fn(x)
@@ -30,3 +30,5 @@ function paramsFit = minimize_objective(variables, objective_fn, paramsInit, res
     end
 
 end
+
+    
