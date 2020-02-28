@@ -144,9 +144,9 @@ classdef GratingThreshTrial < CueTrial
             % -----------------------------------------------------
             % get accuracy results from the trials
             accuracy = analyze_results(resultsStruct, self.threshType, ...
-                {'correct'}, {}, [], @mean);
+                {'correct'}, {}, [], {}, @mean);
             count = analyze_results(resultsStruct, self.threshType, ...
-                {'correct'}, {}, [], @length);
+                {'correct'}, {}, [], {}, @length);
             % make the results structure
             results.x = accuracy.(string(self.threshType)); % the x-values
             results.w = count.correct ./ sum(count.correct); % weighted by number of trials
@@ -154,7 +154,7 @@ classdef GratingThreshTrial < CueTrial
             
             % fit psychometric function to find theshold
             variables = {'t', 'b'};
-            pFit = minimize_objective(variables, @log_likelihood,...
+            pFit = minimize_objective(variables, [], [], @log_likelihood,...
                 pInit, results, @weibull);
             
             figure

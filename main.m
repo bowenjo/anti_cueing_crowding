@@ -92,6 +92,7 @@ stimTime = 133/1000; % stimulus presentation time
 pInit.t = 1.2; % init threshold grating size
 pInit.b = 1; % estimated slope
 pInit.g = 0.50; % chance percent correct
+pInit.s = 1; % asymptote
 
 if sessionNumber == '1' && spComplete == 'n'
     nUp = 1; % number of wrong trials in a row to move up 
