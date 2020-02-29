@@ -26,48 +26,51 @@ addpath(analysisPath)
 % timing info
 isiTime = 1; % pre-cue time
 cueTime = 40/1000; % cue presentation time
-stimTime = 3000/1000; % stimulus presentation time
+stimTime = 133/1000; % stimulus presentation time
 cuedLocProb = [.5 .5]; % probability of cue location
+diameter = 2;
 
 % open ptb window
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 
 %-----------------------------------------
-% Example Grating Block
+% Example Grating Size Staircase Block
 %-----------------------------------------
-initSize = 4;
-stepSize = .20;
-nUp = 1;
-nDown = 3;
-cyclesPerGrating=3;
+initSize = 3; % initial grating size for staircase
+stepSize = .20; % step size in pixels
+nUp = 1; % number of trials in a row wrong to move up
+nDown = 2; % number of trials in a row correct to move down
+fixColors = [.25; .25; .25; .25];
+displaySide = [.5 .5];
 
-GratingBlock = GratingThreshTrial(window, windowRect, "size", initSize, ... 
-                stepSize, nUp, nDown, cyclesPerGrating, stimTime);
+
+GratingBlock = GratingThreshTrial(window, windowRect, "grating_size", initSize, ... 
+                stepSize, nUp, nDown, fixColors, stimTime, displaySide, false);
             
 %-----------------------------------------
 % Example Block 1: Long SOA
 %-----------------------------------------
 % Independent variables
-soaTime = 600/1000; %600 ms
+soaTime = 600/1000 - cueTime; %600 ms
 cueValidProb = .8; % probability the cue is valid
 spaceCh = [Inf, 6.25]; % define your spacing choices in pixels
-spaceProb = [.5, .5]; % decide the proportion of each choice  
+spaceProb = [1, 0]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
-Block1 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
+Block1 = CueTrial(window, windowRect, diameter, cuedLocProb, cueValidProb, ...
     spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %---------------------------------------------
 % Example Block 2: Short SOA
 %---------------------------------------------
 % Independent variables
-soaTime = 40/1000; % 40ms
+soaTime = 40/1000 - cueTime; % 40ms
 cueValidProb = .8; % probability the cue is valid
-spaceCh = [Inf, 1]; % define your spacing choices in pixels
+spaceCh = [Inf, 20]; % define your spacing choices in pixels
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
-Block2 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
+Block2 = CueTrial(window, windowRect, diameter, cuedLocProb, cueValidProb, ...
     spaceProb, spaceCh, isiTime, cueTime, soaTime, stimTime);
 
 %-------------------------
@@ -80,24 +83,25 @@ Block2 = CueTrial(window, windowRect, cuedLocProb, cueValidProb, ...
 Exp = Experiment();
 % Build a waitscreen   
 gMessage = 'Grating Threshold \n \n press space bar to start';
-iMessage = 'Long SOA Block  \n \n press space bar to start';
-nMessage = 'Short SOA Block \n \n press space bar to start'; 
-gWait = WaitScreen(window, gMessage, 70);
-iWait = WaitScreen(window, iMessage, 70); 
-nWait = WaitScreen(window, nMessage, 70);   
+lMessage = 'Long SOA Block  \n \n press space bar to start';
+sMessage = 'Short SOA Block \n \n press space bar to start'; 
+gWait = WaitScreen(window, windowRect, gMessage, 70, []);
+lWait = WaitScreen(window, windowRect, lMessage, 70, []); 
+sWait = WaitScreen(window, windowRect, sMessage, 70, []);   
 % Append blocks and corresponding number of trials 
 Exp.append_block("wait_1", gWait, 0)
-Exp.append_block("block_2", GratingBlock, 10); % get the grating threshold info
-Exp.append_block('wait_1', iWait, 0) 
-Exp.append_block('block_1', Block1, 5) % Block 1: Informative/Long SOA for 5 trials
-Exp.append_block('wait_2', nWait, 0) 
-Exp.append_block('block_2', Block2, 5)  % Block 2:/Short SOA for 5 trials
-Exp.run() % run all blocks  
-% dump the important results to a table for all trials in the experiment
-results = Exp.save_run('results/test/test_save.mat', []); 
+Exp.append_block("block_1", GratingBlock, 10); % grating staricase
+Exp.append_block('wait_2', lWait, 0) 
+Exp.append_block('block_2', Block1, 5) % Block 1: Long SOA for 5 trials
+Exp.append_block('wait_3', sWait, 0) 
+Exp.append_block('block_3', Block2, 5)  % Block 2: Short SOA for 5 trials
+Exp.run([], '') % run all blocks 
+sca;
 
-sca; 
-analyze_results(results, 'spacing', {'correct','RT'}, {}, [])
+% dump the important results to a struct for all trials in the experiment
+% results = Exp.save_run('test_save.mat', []); 
+
+
 
 
 
