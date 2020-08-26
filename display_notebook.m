@@ -22,15 +22,15 @@ out_20 = analyze_results(r_20.results, 'spacing', {'correct'}, {}, [], @mean);
 
 figure
 hold on
-plot(out_10.spacing, out_10.correct);
-plot(out_20.spacing, out_20.correct);
-plot(out_same.spacing, out_same.correct);
+plot(out_10.spacing, out_10.correct, 'LineWidth', 2);
+plot(out_20.spacing, out_20.correct, 'LineWidth', 2);
+plot(out_same.spacing, out_same.correct, 'LineWidth', 2);
 xlim([1 3]);
 ylim([.5,1])
 xlabel('target-flanker spacing (DVA)');
 ylabel('accuracy (percent correct)');
 title("Target-flanker relationship: constant stimuli");
-legend('10 deg diff','20 deg diff','same', 'Location', 'southeast');
+legend('10 deg wedge','20 deg wedge','0 deg wedge', 'Location', 'southeast');
 hold off
 
 
@@ -170,7 +170,7 @@ legend('9 deg', '12 deg', 'Location', 'southeast');
 hold off
 
 %% Full experiment plots
-results_path = [pwd '/results/KB/1/'];
+results_path = [pwd '/results/sub005/2/'];
 r = load([results_path '/experiment_results.mat']);
 results = r.results;
 %% all scores
@@ -180,7 +180,7 @@ figure
 hold on
 scatter(all.spacing, all.correct);
 plot(all.spacing, repmat(all.correct(8), 1, 8));
-ylim([.7, 1.01]);
+% ylim([.7, 1.01]);
 title('All trials');
 xlabel('target-flanker spacing (DVA)');
 ylabel('percent correct');
@@ -188,9 +188,9 @@ legend('all trials', 'target alone', 'Location', 'southeast')
 hold off
 
 %% plot valid-long vs invalid-long
-validLong = analyze_results(results, 'spacing', {'correct'}, ...
+validLong = analyze_results(results, 'spacing', {'correct', 'RT'}, ...
     {'soa_time', 'valid'}, [.6, 1], @mean);
-invalidLong = analyze_results(results, 'spacing', {'correct'}, ...
+invalidLong = analyze_results(results, 'spacing', {'correct', 'RT'}, ...
     {'soa_time', 'valid'}, [.6, 0], @mean);
 
 figure
@@ -204,16 +204,16 @@ ylabel('percent correct');
 legend('valid-long', 'invalid-long', 'Location', 'southeast')
 hold off
 %% plot valid-short vs invalid-short
-validShort = analyze_results(results, 'spacing', {'correct'}, ...
+validShort = analyze_results(results, 'spacing', {'correct', 'RT'}, ...
     {'soa_time', 'valid'}, [.04, 1], @mean);
-invalidShort = analyze_results(results, 'spacing', {'correct'}, ...
+invalidShort = analyze_results(results, 'spacing', {'correct', 'RT'}, ...
     {'soa_time', 'valid'}, [.04, 0], @mean);
 
 figure
 hold on
 plot(validShort.spacing, validShort.correct);
 plot(invalidShort.spacing, invalidShort.correct);
-ylim([.7, 1]);
+% ylim([.5, 1]);
 title('Short Soa Trials');
 xlabel('target-flanker spacing (DVA)');
 ylabel('percent correct');
@@ -224,7 +224,7 @@ figure
 hold on
 plot(validLong.spacing, validLong.correct);
 plot(invalidShort.spacing, invalidShort.correct);
-ylim([.7, 1]);
+% ylim([.7, 1]);
 title('Cue vs Anti-cue Trials');
 xlabel('target-flanker spacing (DVA)');
 ylabel('percent correct');
@@ -238,9 +238,23 @@ plot(validLong.spacing, validLong.correct);
 plot(invalidLong.spacing, invalidLong.correct);
 plot(validShort.spacing, validShort.correct);
 plot(invalidShort.spacing, invalidShort.correct);
-ylim([.6, 1]);
+% ylim([.6, 1]);
 title('Cue vs Anti-cue Trials');
 xlabel('target-flanker spacing (DVA)');
 ylabel('percent correct');
 legend('valid-long', 'invalid-long', 'valid-short','invalid-short', 'Location', 'southeast')
+hold off
+
+%% all RT
+figure
+hold on
+plot(validLong.spacing, validLong.RT);
+plot(invalidLong.spacing, invalidLong.RT);
+plot(validShort.spacing, validShort.RT);
+plot(invalidShort.spacing, invalidShort.RT);
+% ylim([.6, 1]);
+title('Cue vs Anti-cue Trials');
+xlabel('target-flanker spacing (DVA)');
+ylabel('Reaction Time');
+legend('valid-long', 'invalid-long', 'valid-short','invalid-short', 'Location', 'northeast')
 hold off
