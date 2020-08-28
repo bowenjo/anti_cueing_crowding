@@ -27,8 +27,8 @@ addpath(analysisPath)
 isiTime = 1; % pre-cue time
 cueTime = 40/1000; % cue presentation time
 stimTime = 133/1000; % stimulus presentation time
-cuedLocProb = [.5 .5]; % probability of cue location
-diameter = 2;
+cuedLocProb = [.5 .5]; % probability of cue location (i.e. 50% each side)
+diameter = 2; % size of the grating
 
 % open ptb window
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
@@ -41,7 +41,7 @@ stepSize = .20; % step size in pixels
 nUp = 1; % number of trials in a row wrong to move up
 nDown = 2; % number of trials in a row correct to move down
 fixColors = [.25; .25; .25; .25];
-displaySide = [.5 .5];
+displaySide = [0 1];
 
 
 GratingBlock = GratingThreshTrial(window, windowRect, "grating_size", initSize, ... 
@@ -53,8 +53,8 @@ GratingBlock = GratingThreshTrial(window, windowRect, "grating_size", initSize, 
 % Independent variables
 soaTime = 600/1000 - cueTime; %600 ms
 cueValidProb = .8; % probability the cue is valid
-spaceCh = [Inf, 6.25]; % define your spacing choices in pixels
-spaceProb = [1, 0]; % decide the proportion of each choice  
+spaceCh = [Inf, 6.25]; % define your spacing choices in dva
+spaceProb = [.5, .5]; % decide the proportion of each choice  
 
 % initialize the block of trials module with the parameters
 Block1 = CueTrial(window, windowRect, diameter, cuedLocProb, cueValidProb, ...
@@ -65,8 +65,8 @@ Block1 = CueTrial(window, windowRect, diameter, cuedLocProb, cueValidProb, ...
 %---------------------------------------------
 % Independent variables
 soaTime = 40/1000 - cueTime; % 40ms
-cueValidProb = .8; % probability the cue is valid
-spaceCh = [Inf, 20]; % define your spacing choices in pixels
+cueValidProb = .8; % probability the cue is valid 
+spaceCh = [Inf, 6.25]; % define your spacing choices in dva
 spaceProb = [.5, .5]; % decide the proportion of each choice 
 
 % initialize the block of trials module
@@ -82,7 +82,7 @@ Block2 = CueTrial(window, windowRect, diameter, cuedLocProb, cueValidProb, ...
 % ordering of the blocks, the number of trials, the proportions, etc.
 Exp = Experiment();
 % Build a waitscreen   
-gMessage = 'Grating Threshold \n \n press space bar to start';
+gMessage = 'Grating Size Staircase \n \n press space bar to start';
 lMessage = 'Long SOA Block  \n \n press space bar to start';
 sMessage = 'Short SOA Block \n \n press space bar to start'; 
 gWait = WaitScreen(window, windowRect, gMessage, 70, []);
@@ -90,7 +90,7 @@ lWait = WaitScreen(window, windowRect, lMessage, 70, []);
 sWait = WaitScreen(window, windowRect, sMessage, 70, []);   
 % Append blocks and corresponding number of trials 
 Exp.append_block("wait_1", gWait, 0)
-Exp.append_block("block_1", GratingBlock, 10); % grating staricase
+Exp.append_block("block_1", GratingBlock, 10); % grating staircase for 10 trials
 Exp.append_block('wait_2', lWait, 0) 
 Exp.append_block('block_2', Block1, 5) % Block 1: Long SOA for 5 trials
 Exp.append_block('wait_3', sWait, 0) 

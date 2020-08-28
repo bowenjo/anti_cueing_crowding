@@ -4,12 +4,18 @@ screens = Screen('Screens');
 screenNumber = max(screens);
 backgroundGrey = WhiteIndex(screenNumber)/2;
 
+utilsPath = [pwd '/utils'];
+analysisPath = [pwd '/analysis'];
+addpath(utilsPath)
+addpath(analysisPath)
+
 % initialize the eyelink
 EyelinkInit();
 
 % open the psychtoolbox screen
 [window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
 [xCenter, yCenter] = RectCenter(windowRect); % center coordinates of the screen
+[xRes, yRes] = Screen('WindowSize', window);
 ifi = Screen('GetFlipInterval', window); % inter-frame interval for accurate timing
 
 % experiment parameters
@@ -37,13 +43,16 @@ while respToBeMade
     % draw fixation cross at center of the screen
     Screen('FillRect', window, .25, [fcv' fch']);
     Screen('FrameRect', window, fixBoxColors(fix+1,:), fixLoc, 2);
+    DrawFormattedText(window, 'Hover eye/cursor over box to fixate', ...
+        'center', .85*yRes, 1); 
+    DrawFormattedText(window, 'Press q to exit', 'center', .90*yRes, 1);
     % flip the screen
     vbl = Screen('Flip', window, vbl + ifi/2);
-    % get out by pressing any key
+    % get out by pressing q key
     [~, ~, keyCode] = KbCheck;
-    if any(keyCode)
+    if any(keyCode(KbName('Q')))
         respToBeMade = 0;
-    end      
+    end  
 end
 Eyelink('StopRecording');
 sca;
