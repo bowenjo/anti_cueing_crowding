@@ -97,6 +97,8 @@ classdef TrialModule < handle
         function init_eyelink(self, expName, edfFile)
             % -----------------------------------------------
             % Initializes the eyelink edf file
+            % TODO: Need to update this if want to save a 
+            % more complete edfFile in the future
             % -----------------------------------------------
             % initialize for given window
             self.el=EyelinkInitDefaults(self.window);
@@ -146,38 +148,6 @@ classdef TrialModule < handle
                     HideCursor;
                 end
                 Eyelink('Message', 'FIXATION_CROSS');
-
-                % trail recalibration
-                MAX_CHECK = 3; % check 3 times for fixation
-                ncheck = 0; 
-                fix = 1;
-                while fix~=1 % if there is no fixation, check for fixation
-                    ncheck = ncheck + 1; 
-                    self.draw_fixation(0)
-                    Screen('Flip', self.window);
-                    Eyelink('message', 'FIXATION_CROSS');
-                    fix = check_fix(self.el, self.fixLoc);	
-                    
-                    if fix == 0 && ncheck < MAX_CHECK
-                        Screen('Flip', self.window);
-                        WaitSecs(1.2);
-                        self.draw_fixation(0)
-                        Screen('Flip', self.window);
-                        WaitSecs(0.6);
-                    elseif fix == 0 && ncheck == MAX_CHECK 
-                        Eyelink('Message', 'FORCED_CALIBRATION'); % calibrate again
-                        EyelinkDoTrackerSetup(self.el);
-                        Eyelink('startrecording');	% start recording
-                        WaitSecs(.1);
-
-                        err = Eyelink('checkrecording'); % check recording status
-                        if err~=0
-                            Eyelink('Message', 'TRIAL ERRORWITHIN');
-                        end
-                        Screen('Flip', self.window);
-                        ncheck = 0; 
-                    end
-                end	
             end
         end
 

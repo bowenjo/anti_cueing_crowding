@@ -6,17 +6,20 @@ classdef Experiment < handle
     %       trials
     %   2) run
     %       runs the full experiment (all appended blocks)
-    
-    % TODO: convert all containers.Map()/tables/results matrices to be structures
-    
+    %   3) save_run
+    %       saves the experiment design for each block to a file
+        
     properties
     blocks % struct - blocks of the experiment
     nTrialTracker % struct - the number of trials in each block
-    checkpoint % struct
+    checkpoint % struct - checkpointing info for resuming a saved run
     end
     
     methods
         function self = Experiment()
+            % ------------------------------------
+            % Construct an instance of the class
+            % ------------------------------------
             self.blocks = struct;
             self.nTrialTracker = struct;
             
@@ -27,16 +30,23 @@ classdef Experiment < handle
         end
         
         function append_block(self, index, Module, nTrials)
-            %append_block Appends an experiment block to the full design
-            %   index - str - the container key
+            % -----------------------------------------------------------
+            % Appends an experiment block to the full design
+            %   index - str - the field name for the block
             %   Module - MatLab class - the block module containing all the
             %       design information for the block of trials
             %   nTrials - int - the number of trials to run the block
+            % -----------------------------------------------------------
             self.blocks.(index) = Module;
             self.nTrialTracker.(index) = nTrials;
         end
         
         function run(self, blockIndices, file)
+            % ------------------------------------------------------------
+            % Runs a block
+            %   blockIndices - list - block indices to run
+            %   file - str - file to save experiment design and results to
+            % ------------------------------------------------------------
             if isempty(blockIndices)
                 blockIndices = fields(self.blocks)';
             end
@@ -94,8 +104,12 @@ classdef Experiment < handle
         end
         
         function results = save_run(self, file, blockIndices)
-            % dumps the results for each block in blockIndices
+            % ------------------------------------------------------
+            % Dumps the results for each block in blockIndices
             % into a single results structure
+            %   file - str - file to save results
+            %   blockIndices - list - block indices to save
+            % ------------------------------------------------------
             results = struct;
             
             % dump all results if no indices are given
