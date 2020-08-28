@@ -7,7 +7,6 @@ function error = squared_error(fitParams, results, fn)
         %results.x - observed x values
         %reuslts.y - observed y values
         %results.w - weights (n_x / n_total)
-        % note: final element in results struct is the asymptotic regulator
     yPred = fn(fitParams, results.x);
     error = sum(results.w .* (yPred - results.y).^2);
 end

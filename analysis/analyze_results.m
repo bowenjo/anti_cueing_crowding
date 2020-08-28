@@ -7,6 +7,8 @@ function analyzedResults = analyze_results(results, xKey, yKeys, filterKeys, ...
     %   yKeys - cell array - dependent variables field names
     %   filterKeys - cell array - results structure field name to filter
     %   filterValues - array - corresponding field values to filter by
+    %   filterRelationOperators - cell array - operations to filter values
+    %   fn - matlab function - summary statistic function (i.e. mean, sum)
     
     nFilters = length(filterKeys);
     xValues = unique(results.(string(xKey)));
