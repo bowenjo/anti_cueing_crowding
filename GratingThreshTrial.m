@@ -48,15 +48,13 @@ classdef GratingThreshTrial < CueTrial
         end
             
         
-        function [vbl,rsp] = forward(self, idx, vbl, nTrials)
+        function [rsp] = forward(self, idx, nTrials)
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
             % ---------------------------------------------------------- 
             
             % set the grating sizes before the first trial
             if idx == 1
-                self.start_countdown(5);
-                %self.start_screen(KbName('Space'));
                 self.init_grating()
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
@@ -93,6 +91,7 @@ classdef GratingThreshTrial < CueTrial
             postFixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
+            vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(self.fixationColors(1, :));
                 self.cue_vlines(0)
@@ -116,7 +115,7 @@ classdef GratingThreshTrial < CueTrial
             
             self.draw_fixation(self.fixationColors(4, :))
             self.cue_vlines(0)
-            Screen('Flip', self.window, vbl+self.ifi/2);
+            Screen('Flip', self.window);
 
             % append the response data
             preFix = mean(preFixationChecks == 1);

@@ -163,10 +163,10 @@ classdef TrialModule < handle
             % initialize eyelink
             self.init_eyelink(name, [name '.edf'])
             % run the design for each trial
-            vbl = Screen('Flip', self.window);
+            self.start_countdown(5);
             for i = startIdx:nTrials
                 % TODO: look into Eyelink StopRecording and StartRecording
-                [vbl, rsp] = self.forward(i, vbl, nTrials);
+                rsp = self.forward(i, nTrials);
                 if string(rsp) == "pause" || string(rsp) == "skip"
                     break
                 end

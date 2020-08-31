@@ -309,14 +309,10 @@ classdef CueTrial < TrialModule & CueTrialParams
             
         end
         
-        function [vbl, rsp] = forward(self, idx, vbl, nTrials)
+        function rsp = forward(self, idx, nTrials)
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
             % ----------------------------------------------------------
-            if idx == 1
-                self.start_countdown(5);
-                %self.start_screen(KbName('Space'));
-            end
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
@@ -325,6 +321,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % Eyelink stuff
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
+            vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(.25);
                 self.cue_vlines(0)
@@ -359,7 +356,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             
             self.draw_fixation(0)
             self.cue_vlines(0)
-            vbl = Screen('Flip', self.window);
+            Screen('Flip', self.window);
 
             % append the response data
             preCueFix = mean(preCueFixationChecks == 1);
