@@ -173,26 +173,29 @@ classdef CueTrial < TrialModule & CueTrialParams
             dest = [x1 y1 x2 y2];
         end
         
-        function [dests, flankerIdx] = get_flanker_dests(self, dests, ...
-                rectIdx, flankerIdx, offset)
-            % --------------------------------------------------------
-            % gets the flanker destinations with respect to the cue
-            % location
-            % --------------------------------------------------------
+        function [offsets] = get_offsets(self, spacing)
+            % ----------------------------------------------------------
+            % Gets the flanker offsets for the given spacing
+            % ----------------------------------------------------------
             diameterPix = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter);
-            
-            loc = abs(offset) > 0;
-            for i =  1:self.nFlankers
-                flankerOffset = offset;
-                if flankerOffset(loc) > 0
-                    flankerOffset(loc) = flankerOffset(loc) + (i-1)*diameterPix;
-                else
-                    flankerOffset(loc) = flankerOffset(loc) - (i-1)*diameterPix;
+            % initialize offset array (x and y-coord)X(all flankers)
+            offsets = zeros(2,(self.nFlankers*self.nFlankerRepeats));
+            % get the angle to rotate 
+            rotationAngle = 2*pi/(self.nFlankers);
+            % loop over the flankers to get offsets
+            index = 1;
+            for nF=1:self.nFlankers
+                for nR=1:self.nFlankerRepeats
+                    xOffset = (spacing + (nR-1)*self.flankerRepeatOffset*diameterPix) ...
+                        * cos(self.flankerAxis+(nF-1)*rotationAngle);
+                    yOffset = (spacing + (nR-1)*self.flankerRepeatOffset*diameterPix) ...
+                        * sin(self.flankerAxis+(nF-1)*rotationAngle);
+                    offsets(:,index) = [xOffset; yOffset]; 
+                    index = index+1;
                 end
-                dests(flankerIdx,:) = self.get_destination(rectIdx, flankerOffset); 
-                flankerIdx = flankerIdx + 1;
-            end    
+            end 
+            
         end
         
         function [stimuli, dests] = make_stimuli(self, idx, rectIdx)
@@ -201,13 +204,14 @@ classdef CueTrial < TrialModule & CueTrialParams
             % destinations
             % ------------------------------------------------------
             % make the gratings textures
-            trialOrientations = zeros(1, self.totalNumFlankers+1);
+            totalNumFlankers = self.nFlankers*self.nFlankerRepeats;
+            trialOrientations = zeros(1, totalNumFlankers+1);
             
             % get target orientation for the trial;
             trialOrientations(1) = self.expDesign.T(idx);
             
             % get the flanker orientations for the trial
-            for i = 1:self.totalNumFlankers
+            for i = 1:(totalNumFlankers)
                 trialOrientations(i+1) = self.expDesign.(...
                     string(self.flankerKeys(i)))(idx);
             end
@@ -217,7 +221,7 @@ classdef CueTrial < TrialModule & CueTrialParams
                     self.diameter, self.spatialFrequency, self.contrast, self.isHash, ...
                     self.subjectDistance, self.physicalWidthScreen, self.xRes);
             elseif self.stimType == "rotated_t"
-                letterTypes = ['T' repmat('H',1,self.totalNumFlankers)];
+                letterTypes = ['T' repmat('H',1,totalNumFlankers)];
                 stimuli = make_rotated_letter(self.window, letterTypes, ...
                     trialOrientations, self.diameter, self.diameter/10,  self.subjectDistance, ...
                     self.physicalWidthScreen, self.xRes);
@@ -228,40 +232,17 @@ classdef CueTrial < TrialModule & CueTrialParams
                 self.xRes, self.expDesign.spacing(idx)); % get the spaincing in pixels
             
             % get the destinations for the trial
-            dests = zeros(self.totalNumFlankers+1, 4);
+            dests = zeros(totalNumFlankers+1, 4);
             
             % set target destination
             dests(1,:) = self.get_destination(rectIdx, [0,0]); 
             
-            % set flanker destination
+            % set flanker destinations
+            flankerOffsets = self.get_offsets(sTrial);
             flankerIdx = 2;
-            if self.flankerStyle == 't'
-                % lower flanker(s)
-                [dests, flankerIdx] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [0, sTrial]);
-                % upper flankers(s)
-                [dests, ~] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [0, -sTrial]);
-            elseif self.flankerStyle == 'r'
-                % right flanker(s)
-                [dests, flankerIdx] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [sTrial, 0]);
-                % left flankers(s)
-                [dests, ~] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [-sTrial, 0]);
-            elseif self.flankerStyle == 'b'
-                % lower flanker(s)
-                [dests, flankerIdx] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [0, sTrial]);
-                % upper flankers(s)
-                [dests, flankerIdx] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [0, -sTrial]);
-                % right flanker(s)
-                [dests, flankerIdx] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [sTrial, 0]);
-                % left flankers(s)
-                [dests, ~] = self.get_flanker_dests(...
-                    dests, rectIdx, flankerIdx, [-sTrial, 0]);
+            for offset=flankerOffsets
+                dests(flankerIdx,:) =  self.get_destination(rectIdx, offset);
+                flankerIdx = flankerIdx+1;
             end
         end
             
