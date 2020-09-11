@@ -43,12 +43,12 @@ classdef CueTrialParams < handle
         targetOrientProb % array - proportion to choose choices
         flankerOrientChoice % array - flanker orientation choices in degrees
         flankerOrientProb % array - proportion to choose choices
-        nFlankers % int - the number of flankers per side
-        flankerStyle % char - the flanker style - options - 't', 'r', 'b'  
+        nFlankers % int - the number of flanker locations 
         flankerKeys % cell array - keys for the flankers
-        totalNumFlankers % int - the total number of flankers
+        nFlankerRepeats % int - the total number of flanker repeats
+        flankerRepeatOffset % float - spacing between repeat flankers (in units diameter)
+        flankerAxis % float - reference axis to draw flankers
         isHash % bool - true if flankers are hashed style
-        
     end
     
     methods
@@ -87,8 +87,10 @@ classdef CueTrialParams < handle
             self.targetOrientProb = [.5 .5];
             self.flankerOrientProb = ones(1, 180)/180;
             
-            self.flankerStyle = 't';   
             self.nFlankers = 2;
+            self.nFlankerRepeats = 2;
+            self.flankerRepeatOffset = 1;
+            self.flankerAxis = pi/2;
             self.isHash = false; 
             
             % response info
@@ -121,7 +123,7 @@ classdef CueTrialParams < handle
             
             self.nLocs = length(self.xPos);
             vls = angle2pix(self.subjectDistance, ...
-                self.physicalWidthScreen, self.xRes, self.diameter); % vline space
+                self.physicalWidthScreen, self.xRes, 9); % vline space
             
             self.vLines = [];
             for os = [-xOffsetPix, xOffsetPix]
@@ -136,13 +138,9 @@ classdef CueTrialParams < handle
             % -------------------------------------------------------
             % (re)sets the flanker parameters for the currect style
             % -------------------------------------------------------
-            if self.flankerStyle == 't' || self.flankerStyle == 'r'
-                self.totalNumFlankers = self.nFlankers*2;
-            elseif self.flankerStyle == 'b'
-                self.totalNumFlankers = self.nFlankers*4;
-            end
+            totalNumFlankers = self.nFlankers * self.nFlankerRepeats;
             self.flankerKeys = {};
-            for i = 1:self.totalNumFlankers
+            for i = 1:totalNumFlankers
                 self.flankerKeys(i) = {['F_' char(string(i))]};
             end
         end
