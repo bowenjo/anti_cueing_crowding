@@ -40,7 +40,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % grating size
             self.diameter = diameter;
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
-            self.set_position_params();
+            self.set_position_params(self.diameter);
             self.set_flanker_params();
             
             % data randomization information
@@ -126,36 +126,45 @@ classdef CueTrial < TrialModule & CueTrialParams
             end
         end
         
-        function [] = cue_vlines(self, cuedLoc)
+        function [] = cue(self, cuedLoc, cueDiameter)
             % ---------------------------------------------------------
-            % highlights the cued rectangle with a different width and
-            % gets the rectangle luminance and width info
+            % highlights the cued vertical lines with a different width 
+            % and luminance
             % ---------------------------------------------------------
-            lums = repmat(self.nonCueLum, 3, self.nLocs*4);
-            lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
-            % change the luminance and width if a cue is present
-            if cuedLoc ~= 0
-                lineLoc = cuedLoc*2;
-                lums(:, lineLoc*2-3:lineLoc*2) = repmat(self.cueLum, 3, 4);
-                lineWidths(lineLoc-1:lineLoc) = repmat(self.cueWidth, 1, 2);
-            end
-            % Display the rects
-            Screen('DrawLines', self.window, self.vLines, lineWidths,...
-                lums, [self.xCenter self.yCenter]);
-        end
-        
-        function [] = cue_dot(self, cuedLoc)
-            % --------------------------------------------------
-            % Cues a solid dot to the cued location 
-            % --------------------------------------------------
-            radius = angle2pix(self.subjectDistance, ...
-                self.physicalWidthScreen, self.xRes, self.diameter/2);
+            % reset the position params for trial diameter
+            self.set_position_params(cueDiameter);
             
-            dotLoc = [self.xPos(cuedLoc), self.yPos(cuedLoc)];
-            Screen('DrawDots', self.window, ...
-                dotLoc, radius, self.cueLum, [], 2);
+            % cue vertical lines
+            if self.cueType == "vline"
+                % change the luminance and width if a cue is present
+                lums = repmat(self.nonCueLum, 3, self.nLocs*4);
+                lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
+                if cuedLoc ~= 0
+                    lineLoc = cuedLoc*2;
+                    lums(:, lineLoc*2-3:lineLoc*2) = repmat(self.cueLum, 3, 4);
+                    lineWidths(lineLoc-1:lineLoc) = repmat(self.cueWidth, 1, 2);
+                end
+                % Display the rects
+                Screen('DrawLines', self.window, self.cueRects, lineWidths,...
+                    lums, [self.xCenter self.yCenter]);
+                
+            % cue a circle or a square
+            else
+               lums = repmat(self.nonCueLum, 3, self.nLocs);
+               lineWidths = repmat(self.nonCueWidth, 1, self.nLocs);
+               if cuedLoc ~=0
+                   lums(:, cuedLoc) = repmat(self.cueLum, 3, 1);
+                   lineWidths(cuedLoc) = self.cueWidth;
+               end
+                   
+               if self.cueType == "circle"
+                    Screen('FrameOval', self.window, lums, self.cueRects, lineWidths)
+               elseif self.cueType == "square"
+                    Screen('FrameRect', self.window, lums, self.cueRects, lineWidths)
+               end
+            end
         end
-        
+       
         
         function [dest] = get_destination(self, rectIdx, offset)
             % ----------------------------------------------------------
@@ -305,38 +314,38 @@ classdef CueTrial < TrialModule & CueTrialParams
             vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(.25);
-                self.cue_vlines(0)
+                self.cue(0, self.diameter)
                 preCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
             for i = 1:self.cueFrames
                 self.draw_fixation(.25);
-                self.cue_vlines(cueIndex);
+                self.cue(cueIndex, self.diameter);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation(.25);
-                self.cue_vlines(0)
+                self.cue(0, self.diameter)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
                 self.draw_fixation(.25)
-                self.cue_vlines(0)
+                self.cue(0, self.diameter)
                 self.place_stimuli(stimuli, dests);
                 postCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
             self.draw_fixation(.25)
-            self.cue_vlines(0)
+            self.cue(0, self.diameter)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             
             self.draw_fixation(0)
-            self.cue_vlines(0)
+            self.cue(0, self.diameter)
             Screen('Flip', self.window);
 
             % append the response data

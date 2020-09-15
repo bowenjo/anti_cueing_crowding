@@ -7,13 +7,13 @@ classdef CueTrialParams < handle
         screenNumber
         
         % cue rectangle info
-        baseRect % array - base cue rectangle 
         xPos % int - x-coordinate positions of the boxes in pixels
         yPos % int - y-coordinate positions of the boxes in pixels
         nLocs % int - number of rectangles
-        vLines % the rectangle bounding box coordinates
+        cueRects % the rectangle bounding box coordinates
        
         % cue information
+        cueType % str - cue type (vline, circle, square)
         cueLum % float - cued rectangle luminance value
         nonCueLum % float - non-cued rectangle luminance value
         cueWidth % int - cued rectangle outline width in pixels
@@ -64,6 +64,7 @@ classdef CueTrialParams < handle
             self.physicalWidthScreen = 43; 
 
             % cue information
+            self.cueType = "vline";
             self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
             self.nonCueLum = (1/4)*WhiteIndex(self.screenNumber);
             self.cueWidth = 3;
@@ -108,30 +109,40 @@ classdef CueTrialParams < handle
                             self.xCenter+fixRadius, self.yCenter+fixRadius]; 
         end
         
-        function set_position_params(self)
+        function set_position_params(self, size)
             % -------------------------------------------------------
             % (re)sets the position parameters for the cue locations
-            % for the current grating diameter
+            % for the current size
             % -------------------------------------------------------
             % Get the vertical cue lines
             xOffset = 14; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
-            self.xPos = [self.xCenter - xOffsetPix, self.xCenter + xOffsetPix];
+            lineOffsets = [-xOffsetPix xOffsetPix];
+            self.xPos = self.xCenter + lineOffsets;
             self.yPos = [.5 .5] * self.yRes;
             
             self.nLocs = length(self.xPos);
-            vls = angle2pix(self.subjectDistance, ...
-                self.physicalWidthScreen, self.xRes, 9); % vline space
             
-            self.vLines = [];
-            for os = [-xOffsetPix, xOffsetPix]
-                xCoor = [os+vls, os+vls, os-vls, os-vls];
-                yCoor = [-vls/2, vls/2, -vls/2, vls/2];
-                lines = [xCoor; yCoor];
-                self.vLines = [self.vLines lines];
-            end
+            sizePix = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, size);  
+            
+            self.cueRects = [];
+            for i = 1:self.nLocs
+                if self.cueType == "vline"
+                    os = lineOffsets(i);
+                    xCoor = [os+sizePix, os+sizePix, os-sizePix, os-sizePix];
+                    yCoor = [-sizePix/2, sizePix/2, -sizePix/2, sizePix/2];
+                    rects = [xCoor; yCoor];
+                    self.cueRects = [self.cueRects rects];
+                else
+                    rects = CenterRectOnPoint([0 0 sizePix sizePix], ...
+                        self.xPos(i), self.yPos(i));
+                    self.cueRects = [self.cueRects rects'];
+                end
+                
+            end   
         end
         
         function set_flanker_params(self)
