@@ -44,7 +44,6 @@ classdef CueTrialParams < handle
         flankerOrientChoice % array - flanker orientation choices in degrees
         flankerOrientProb % array - proportion to choose choices
         nFlankers % int - the number of flanker locations 
-        flankerKeys % cell array - keys for the flankers
         nFlankerRepeats % int - the total number of flanker repeats
         flankerRepeatOffset % float - spacing between repeat flankers (in units diameter)
         flankerAxis % float - reference axis to draw flankers
@@ -86,7 +85,6 @@ classdef CueTrialParams < handle
                 self.flankerOrientChoice = [0 90 180 270];
             end
             self.targetOrientProb = [.5 .5];
-            self.flankerOrientProb = ones(1, 180)/180;
             
             self.nFlankers = 2;
             self.nFlankerRepeats = 2;
@@ -141,21 +139,8 @@ classdef CueTrialParams < handle
                         self.xPos(i), self.yPos(i));
                     self.cueRects = [self.cueRects rects'];
                 end
-                
             end   
-        end
-        
-        function set_flanker_params(self)
-            % -------------------------------------------------------
-            % (re)sets the flanker parameters for the currect style
-            % -------------------------------------------------------
-            totalNumFlankers = self.nFlankers * self.nFlankerRepeats;
-            self.flankerKeys = {};
-            for i = 1:totalNumFlankers
-                self.flankerKeys(i) = {['F_' char(string(i))]};
-            end
-        end
-        
+        end 
     end
 end
 

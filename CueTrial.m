@@ -41,7 +41,6 @@ classdef CueTrial < TrialModule & CueTrialParams
             self.diameter = diameter;
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
             self.set_position_params(self.diameter);
-            self.set_flanker_params();
             
             % data randomization information
             self.cuedLocProb = cuedLocProb;
@@ -71,19 +70,21 @@ classdef CueTrial < TrialModule & CueTrialParams
             % each trial
             % ----------------------------------------------------------
             
-            % cue locations for the each trial
+            % cue locations for each trial
             self.expDesign.cue_loc = random_sample(nTrials, ...
                 self.cuedLocProb, 1:self.nLocs, false);
+            
+            % cue size for each trial
+            self.expDesign.cue_size = repmat(self.diameter, 1, nTrials);
             
             % orientations
             % target orientation
             self.expDesign.T = random_sample(nTrials,...
                     self.targetOrientProb, self.targetOrientChoice, false);
             % flanker orientations for each trial
-            for key = self.flankerKeys  
-               flankerChoices = randi([1, length(self.flankerOrientChoice)], 1, nTrials);
-               self.expDesign.(string(key)) = self.flankerOrientChoice(flankerChoices);
-            end
+            flankerChoices = randi(length(self.flankerOrientChoice), ...
+                self.nFlankers*self.nFlankerRepeats, nTrials);
+            self.expDesign.F = self.flankerOrientChoice(flankerChoices);
             
             % choose validity dependent on spacing
             % target-flanker spacing for each trial
@@ -105,7 +106,6 @@ classdef CueTrial < TrialModule & CueTrialParams
             for key = {'response', 'RT', 'pre_fix_check', 'post_fix_check'}
                 self.expDesign.(string(key)) = nan(1,nTrials);
             end
-
         end
         
         function [cuedLoc, postLoc] = get_cue(self, idx)
@@ -164,7 +164,6 @@ classdef CueTrial < TrialModule & CueTrialParams
                end
             end
         end
-       
         
         function [dest] = get_destination(self, rectIdx, offset)
             % ----------------------------------------------------------
@@ -214,17 +213,11 @@ classdef CueTrial < TrialModule & CueTrialParams
             % ------------------------------------------------------
             % make the gratings textures
             totalNumFlankers = self.nFlankers*self.nFlankerRepeats;
-            trialOrientations = zeros(1, totalNumFlankers+1);
-            
-            % get target orientation for the trial;
-            trialOrientations(1) = self.expDesign.T(idx);
             
             % get the flanker orientations for the trial
-            for i = 1:(totalNumFlankers)
-                trialOrientations(i+1) = self.expDesign.(...
-                    string(self.flankerKeys(i)))(idx);
-            end
-            
+            trialOrientations = [self.expDesign.T(idx), self.expDesign.F(:,idx)'];
+           
+            % make the stimuli images
             if self.stimType == "grating"
                 stimuli = make_grating(self.window, trialOrientations,...
                     self.diameter, self.spatialFrequency, self.contrast, self.isHash, ...
@@ -264,41 +257,6 @@ classdef CueTrial < TrialModule & CueTrialParams
             end
         end
         
-        function [responseKey, responseTime] = get_key_response(self)
-            % ---------------------------------------------------------
-            % waits for and records a keyboard response to be made
-            % ---------------------------------------------------------
-            respToBeMade = true;
-            timeStart = GetSecs;
-            % wait for subject response
-            while respToBeMade
-                [~, secs, keyCode] = KbCheck;
-                responseTime = secs - timeStart;
-                if keyCode(self.leftKey)
-                    responseKey = self.targetOrientChoice(1);
-                    respToBeMade = false;
-                elseif keyCode(self.rightKey)
-                    responseKey = self.targetOrientChoice(2);
-                    respToBeMade = false;
-                elseif keyCode(self.skipKey)
-                    responseKey = "skip";
-                    respToBeMade = false;
-                elseif keyCode(self.pauseKey)
-                    responseKey = "pause";
-                    respToBeMade = false;
-                elseif keyCode(self.killKey)
-                    Eyelink('StopRecording')
-                    ShowCursor;
-                    sca;
-                    error('Session terminated');
-                elseif responseTime > self.responseTimeOut
-                    responseKey = NaN;
-                    respToBeMade = false;
-                end
-            end
-            
-        end
-        
         function rsp = forward(self, idx, nTrials)
             % ----------------------------------------------------------
             % runs one complete trial and records the response variables
@@ -306,6 +264,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % Initialize the trial
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
+            cueSize = self.expDesign.cue_size(idx);
             preCueFixationChecks = zeros(1,self.isiFrames);
             postCueFixationChecks = zeros(1, self.stimFrames);
             % Eyelink stuff
@@ -314,38 +273,38 @@ classdef CueTrial < TrialModule & CueTrialParams
             vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(.25);
-                self.cue(0, self.diameter)
+                self.cue(0, cueSize)
                 preCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
             for i = 1:self.cueFrames
                 self.draw_fixation(.25);
-                self.cue(cueIndex, self.diameter);
+                self.cue(cueIndex, cueSize);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation(.25);
-                self.cue(0, self.diameter)
+                self.cue(0, cueSize)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
                 self.draw_fixation(.25)
-                self.cue(0, self.diameter)
+                self.cue(0, cueSize)
                 self.place_stimuli(stimuli, dests);
                 postCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
             self.draw_fixation(.25)
-            self.cue(0, self.diameter)
+            self.cue(0, cueSize)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             
             self.draw_fixation(0)
-            self.cue(0, self.diameter)
+            self.cue(0, cueSize)
             Screen('Flip', self.window);
 
             % append the response data
