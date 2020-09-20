@@ -150,7 +150,40 @@ classdef TrialModule < handle
                 Eyelink('Message', 'FIXATION_CROSS');
             end
         end
-
+        
+        function [responseKey, responseTime] = get_key_response(self)
+            % ---------------------------------------------------------
+            % waits for and records a keyboard response to be made
+            % ---------------------------------------------------------
+            respToBeMade = true;
+            timeStart = GetSecs;
+            % wait for subject response
+            while respToBeMade
+                [~, secs, keyCode] = KbCheck;
+                responseTime = secs - timeStart;
+                if keyCode(self.leftKey)
+                    responseKey = self.targetOrientChoice(1);
+                    respToBeMade = false;
+                elseif keyCode(self.rightKey)
+                    responseKey = self.targetOrientChoice(2);
+                    respToBeMade = false;
+                elseif keyCode(self.skipKey)
+                    responseKey = "skip";
+                    respToBeMade = false;
+                elseif keyCode(self.pauseKey)
+                    responseKey = "pause";
+                    respToBeMade = false;
+                elseif keyCode(self.killKey)
+                    Eyelink('StopRecording')
+                    ShowCursor;
+                    sca;
+                    error('Session terminated');
+                elseif responseTime > self.responseTimeOut
+                    responseKey = NaN;
+                    respToBeMade = false;
+                end
+            end  
+        end
 
         function [i, rsp] = run(self, startIdx, nTrials, name)
             % --------------------------------------------------
