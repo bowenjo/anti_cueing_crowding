@@ -69,7 +69,7 @@ classdef TrialModule < handle
             end
         end
         
-        function steps = staircase_step(self, steps, results)
+        function steps = staircase_step(self, steps, results, direction)
             % --------------------------------------------------
             % Finds the next step in a nUp-nDown staircase
             % --------------------------------------------------
@@ -85,9 +85,17 @@ classdef TrialModule < handle
                 stepsDown = steps((nSteps+1)-self.nDown:nSteps);
                 % Check if next step is move up or down
                 if sum(up) == 0 && all(diff(stepsUp)==0)
-                    steps = [steps (steps(nSteps) + self.stepSize)];
+                    if direction == "down"
+                        steps = [steps (steps(nSteps) + self.stepSize)];
+                    elseif direction == "up"
+                        steps = [steps (steps(nSteps) - self.stepSize)];
+                    end
                 elseif sum(down) == self.nDown && all(diff(stepsDown)==0)
-                    steps = [steps (steps(nSteps) - self.stepSize)];
+                    if direction == "down"
+                        steps = [steps (steps(nSteps) - self.stepSize)];
+                    elseif direction == "up"
+                        steps = [steps (steps(nSteps) + self.stepSize)];
+                    end
                 else
                     steps = [steps steps(nSteps)];
                 end

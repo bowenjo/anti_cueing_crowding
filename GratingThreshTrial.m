@@ -9,7 +9,7 @@ classdef GratingThreshTrial < CueTrial
         nUp % int - number of consecutive correct trials to move up
         nDown % int - number of consecutive correct triaks to move down
         fixationColors
-        practice
+        practice 
     end
     
     methods
@@ -36,6 +36,10 @@ classdef GratingThreshTrial < CueTrial
             % initializes the parameter to be staircased
             % ---------------------------------------------------------
             self.expDesign.(string(self.threshType)) = [self.initSize];
+            
+            if self.threshType == "ensemble_sigma"
+                self.expDesign.F = [];
+            end
         end
         
         function [stimuli, dests] = make_grating_stimuli(self, idx, rectIdx)
@@ -45,6 +49,18 @@ classdef GratingThreshTrial < CueTrial
             self.diameter = self.expDesign.grating_size(idx);
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
             [stimuli, dests] = self.make_stimuli(idx, rectIdx);
+        end
+        
+        function [stimuli, dests] = make_ensemble_stimuli(self, idx, rectIdx)
+            % ------------------------------------------------------------
+            % updates the ensemble mu and sigma
+            % ------------------------------------------------------------
+            sigma = self.expDesign.ensemble_sigma(idx);
+            target = self.expDesign.T(idx);
+            totalNumFlankers = self.nFlankers*self.nFlankerRepeats;
+            self.expDesign.F(:, idx) = pick_ensemble_flankers(totalNumFlankers, ...
+                    target, target, sigma, 0, 180); 
+            [stimuli,dests] = self.make_stimuli(idx, rectIdx);
         end
             
         
@@ -58,10 +74,16 @@ classdef GratingThreshTrial < CueTrial
                 self.init_grating()
             else
                 correctTrial = self.expDesign.T == self.expDesign.response;
+                % get the direction of the step
+                if self.threshType == "ensemble_sigma"
+                    direction = "up";
+                else
+                    direction = "down";
+                end
                 % set the next step in the staircase
                 self.expDesign.(string(self.threshType)) = self.staircase_step(...
-                    self.expDesign.(string(self.threshType)), correctTrial);
-                
+                    self.expDesign.(string(self.threshType)), correctTrial, direction);
+
                 if self.threshType == "spacing"
                     % ensure targets don't overlap with flankers
                     self.expDesign.spacing(idx) = max(self.diameter, ...
@@ -85,6 +107,8 @@ classdef GratingThreshTrial < CueTrial
                 self.set_position_params(self.diameter) % resets the vline params to fit new size
             elseif self.threshType == "spacing"
                 [stimuli, dests] = self.make_stimuli(idx, placeIdx);
+            elseif self.threshType == "ensemble_sigma"
+                [stimuli, dests] = self.make_ensemble_stimuli(idx, placeIdx);
             end
             
             preFixationChecks = zeros(1, self.isiFrames);
