@@ -88,7 +88,14 @@ classdef GratingThreshTrial < CueTrial
                     % ensure targets don't overlap with flankers
                     self.expDesign.spacing(idx) = max(self.diameter, ...
                         self.expDesign.spacing(idx));
+                    % ensure targets don't overlap with eachother
+                    self.expDesign.spacing(idx) >= (self.diameter*sqrt(2))/(sin(360/(self.nFlankers*2)));
+                    
                 end
+%                 if self.threshType == "spacing"
+%                     % ensure targets don't overlap with eachother
+%                     self.expDesign.spacing(idx) >= (self.diameter*sqrt(2))/(sin(360/(self.nFlankers*2)));
+%                 end
             end
             
             % end the experiment if it's a practice trial and the number of 
