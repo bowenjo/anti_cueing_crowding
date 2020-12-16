@@ -44,7 +44,7 @@ classdef Experiment < handle
         function run(self, blockIndices, file)
             % ------------------------------------------------------------
             % Runs a block
-            %   blockIndices - list - block indices to run
+            %   blockIndices - cell array - block indices to run
             %   file - str - file to save experiment design and results to
             % ------------------------------------------------------------
             if isempty(blockIndices)
