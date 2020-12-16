@@ -128,40 +128,56 @@ classdef CueTrial < TrialModule & CueTrialParams
         
         function [] = cue(self, cuedLoc, cueDiameter)
             % ---------------------------------------------------------
-            % highlights the cued vertical lines with a different width 
-            % and luminance
+            % cues a region of the screen
             % ---------------------------------------------------------
             % reset the position params for trial diameter
             self.set_position_params(cueDiameter);
             
-            % cue vertical lines
-            if self.cueType == "vline"
-                % change the luminance and width if a cue is present
-                lums = repmat(self.nonCueLum, 3, self.nLocs*4);
-                lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
-                if cuedLoc ~= 0
-                    lineLoc = cuedLoc*2;
-                    lums(:, lineLoc*2-3:lineLoc*2) = repmat(self.cueLum, 3, 4);
-                    lineWidths(lineLoc-1:lineLoc) = repmat(self.cueWidth, 1, 2);
-                end
-                % Display the rects
-                Screen('DrawLines', self.window, self.cueRects, lineWidths,...
-                    lums, [self.xCenter self.yCenter]);
-                
-            % cue a circle or a square
+            % nuetral cue (cue fixation)
+            if isinf(cueDiameter) && cuedLoc ~=0
+                self.draw_fixation(self.cueLum);
+            % cue an area
             else
-               lums = repmat(self.nonCueLum, 3, self.nLocs);
-               lineWidths = repmat(self.nonCueWidth, 1, self.nLocs);
-               if cuedLoc ~=0
-                   lums(:, cuedLoc) = repmat(self.cueLum, 3, 1);
-                   lineWidths(cuedLoc) = self.cueWidth;
-               end
-                   
-               if self.cueType == "circle"
-                    Screen('FrameOval', self.window, lums, self.cueRects, lineWidths)
-               elseif self.cueType == "square"
-                    Screen('FrameRect', self.window, lums, self.cueRects, lineWidths)
-               end
+                % cue custom texture
+                if self.cueType == "texture"
+                    if cuedLoc ~= 0
+                        diameterPx = angle2pix(self.subjectDistance, ...
+                        self.physicalWidthScreen, self.xRes, cueDiameter);
+
+                        texturePointer = self.cueFunction(self.window, diameterPx);
+                        Screen('DrawTexture', self.window, texturePointer, [], ...
+                            self.cueRects(:,cuedLoc)')   
+                    end
+
+                % cue vertical lines   
+                elseif self.cueType == "vline"
+                    % change the luminance and width if a cue is present
+                    lums = repmat(self.nonCueLum, 3, self.nLocs*4);
+                    lineWidths = repmat(self.nonCueWidth, 1, self.nLocs*2);
+                    if cuedLoc ~= 0
+                        lineLoc = cuedLoc*2;
+                        lums(:, lineLoc*2-3:lineLoc*2) = repmat(self.cueLum, 3, 4);
+                        lineWidths(lineLoc-1:lineLoc) = repmat(self.cueWidth, 1, 2);
+                    end
+                    % Display the rects
+                    Screen('DrawLines', self.window, self.cueRects, lineWidths,...
+                        lums, [self.xCenter self.yCenter]);
+
+                % cue a circle or a square
+                else
+                   lums = repmat(self.nonCueLum, 3, self.nLocs);
+                   lineWidths = repmat(self.nonCueWidth, 1, self.nLocs);
+                   if cuedLoc ~=0
+                       lums(:, cuedLoc) = repmat(self.cueLum, 3, 1);
+                       lineWidths(cuedLoc) = self.cueWidth;
+                   end
+
+                   if self.cueType == "circle"
+                        Screen('FrameOval', self.window, lums, self.cueRects, lineWidths)
+                   elseif self.cueType == "square"
+                        Screen('FrameRect', self.window, lums, self.cueRects, lineWidths)
+                   end
+                end
             end
         end
         
