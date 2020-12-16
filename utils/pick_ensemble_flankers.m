@@ -17,7 +17,7 @@ function flankerOrientations = pick_ensemble_flankers(nFlankers, t, mu, sigma, .
     flankerOrientations = repmat(x,n,1);
     
     % initialize the normal distribution
-    pd = makedist('Normal', 'mu', mu, 'sigma', sigma); 
+    pd = makedist('Logistic', 'mu', mu, 'sigma', sigma); 
     
     % set the remaining flankers
     while numel(flankerOrientations) < nFlankers
