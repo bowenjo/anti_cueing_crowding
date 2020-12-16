@@ -2,12 +2,15 @@ classdef GratingThreshTrial < CueTrial
     % Class for determining a threshold for a grating stimulus presented 
     % at some eccentricity. Implements a nUp-nDown staircase
     
+    % TODO: put a check so the diameter doesn't go < 0
+    
     properties
         threshType % str - the parameter being staircased
         initSize % float - initial point of the staircase
         stepSize % float -staicase step size 
         nUp % int - number of consecutive correct trials to move up
         nDown % int - number of consecutive correct triaks to move down
+        %TODO: rename "up" to "forward" and "down" to "back"
         fixationColors
         practice 
     end

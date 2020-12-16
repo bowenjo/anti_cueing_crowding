@@ -19,7 +19,8 @@ function [instructions] = size_thresh_instructions()
     
     textSize = 20;
     CB = CueTrial(window, windowRect, 1.25, [1 0], 1, [1], [Inf], 0, 0, 0, 0);
-    CB.set_exp_design(1);
+    CB.nonCueLum = 0.5;
+    CB.set_exp_design(2);
     [cueIndex, postCueIndex] = CB.get_cue(1);
     
     instructions = [];
@@ -50,23 +51,8 @@ function [instructions] = size_thresh_instructions()
     instructions = add_frame(instructions);
     sca;
 
-    
     % ===========
-    % 3. Vlines
-    % ===========
-    [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
-    CB.draw_fixation(.25);
-    CB.cue_vlines(0);
-    message = ['Two sets of vertical lines on each side of the screen ' ...
-               'will appear for the full experiment. \n\n\n Press the space bar to continue'];
-    Screen('TextSize', window, textSize);
-    DrawFormattedText(window, message, 'center', .75*yRes, 1);
-    % append the frame
-    instructions = add_frame(instructions);
-    sca;
-    
-    % ===========
-    % 5. Part I Intro
+    % 3. Part I Intro
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     message = ['Part I'];
@@ -76,15 +62,14 @@ function [instructions] = size_thresh_instructions()
     sca;
     
     % ===========
-    % 6. Stimulus
+    % 4. Stimulus
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     [stimuli, dests] = CB.make_stimuli(1, postCueIndex);
     CB.draw_fixation([.35 0 0]);
-    CB.cue_vlines(0);
     CB.place_stimuli(stimuli, dests);
     message = ['For this part, a single grating will appear ' ...
-               'within the vertical bars on the RIGHT side of the screen.'...
+               'on the RIGHT side of the screen.'...
                '\n\n\n Press the space bar to continue.'];
     Screen('TextSize', window, textSize);
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
@@ -92,11 +77,10 @@ function [instructions] = size_thresh_instructions()
     sca;
     
     % ===========
-    % 7. Response
+    % 5. Response
     % ===========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     CB.draw_fixation([0 .35 0]);
-    CB.cue_vlines(0);
     message = ['After the gratings are briefly presented: \n\n' ...
                'Press the RIGHT ARROW for a grating tilted 45 degrees to the RIGHT of the vertical. \n\n' ...
                'Press the LEFT ARROW for a grating tilted 45 degrees to the LEFT of the vertical. \n\n'...
@@ -106,11 +90,9 @@ function [instructions] = size_thresh_instructions()
     DrawFormattedText(window, message, 'center', .75*yRes, 1);
     instructions = add_frame(instructions);
     sca;
-    
-    %TODO: add close-up images of the possible target orientations
-    
+        
     % ========
-    % 7. End
+    % 6. End
     % ========
     [window, ~] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
     message = ['The trials will become progressively more difficult. \n \n ' ...
