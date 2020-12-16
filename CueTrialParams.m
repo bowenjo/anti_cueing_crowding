@@ -14,6 +14,7 @@ classdef CueTrialParams < handle
        
         % cue information
         cueType % str - cue type (vline, circle, square)
+        cueFunction % matlab func
         cueLum % float - cued rectangle luminance value
         nonCueLum % float - non-cued rectangle luminance value
         cueWidth % int - cued rectangle outline width in pixels
@@ -63,9 +64,10 @@ classdef CueTrialParams < handle
             self.physicalWidthScreen = 43; 
 
             % cue information
-            self.cueType = "vline";
+            self.cueType = "texture";
+            self.cueFunction = @make_circle;
             self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
-            self.nonCueLum = (1/4)*WhiteIndex(self.screenNumber);
+            self.nonCueLum = (1/2)*WhiteIndex(self.screenNumber); %(1/4)*WhiteIndex(self.screenNumber);
             self.cueWidth = 3;
             self.nonCueWidth = 1;
             self.postCuedLoc = [2 1];
@@ -86,8 +88,8 @@ classdef CueTrialParams < handle
             end
             self.targetOrientProb = [.5 .5];
             
-            self.nFlankers = 2;
-            self.nFlankerRepeats = 2;
+            self.nFlankers = 9;
+            self.nFlankerRepeats = 1;
             self.flankerRepeatOffset = 1;
             self.flankerAxis = pi/2;
             self.isHash = false; 
