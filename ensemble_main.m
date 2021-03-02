@@ -18,35 +18,46 @@ addpath(analysisPath)
 
 % Ask for subject ID
 subjectID = input('Subject ID: ', 's');
-subjectDir = ['results/' subjectID];
+subjectDir = ['test_results/' subjectID];
 if ~exist(subjectDir, 'dir')
     mkdir(subjectDir)
 end
 
-% if the baselines already exist 
-szComplete = 'n'; spComplete = 'n';
-if exist([subjectDir '/sz_threshold_results.mat'], 'file')
-    szComplete = input('SIZE baseline already exists. Use it? y/n: ', 's');
-end
-if exist([subjectDir '/sp_threshold_results.mat'], 'file') && szComplete == 'y'
-    spComplete = input('SPACING baseline already exits. Use it? y/n: ', 's'); 
+% Ask for session number
+sessionNumber = input('Session #: ', 's');
+sessionDir = [subjectDir '/' sessionNumber];
+if ~exist(sessionDir, 'dir')
+    mkdir(sessionDir);
 end
 
-% Ask for the side of the screen to present the baseline stimuli
-if szComplete == 'n'
-    baselineDisplaySide = input('Baseline Display Side? r/l: ', 's');
-    if baselineDisplaySide == 'r'
-        baselineDisplay = [0 1];
-        szInstruct = load('instructions/size_thresh_instruction_frames_right.mat');
-    elseif baselineDisplaySide == 'l'
-        baselineDisplay = [1 0];
-        szInstruct = load('instructions/size_thresh_instruction_frames_left.mat');
+% if the baselines already exist 
+szComplete = 'n'; spComplete = 'n';
+if sessionNumber == "1"
+    if exist([sessionDir '/sz_threshold_results.mat'], 'file')
+        szComplete = input('SIZE baseline already exists. Use it? y/n: ', 's');
     end
+    if exist([sessionDir '/sp_threshold_results.mat'], 'file') && szComplete == 'y'
+        spComplete = input('SPACING baseline already exits. Use it? y/n: ', 's'); 
+    end
+
+    % Ask for the side of the screen to present the baseline stimuli
+    if szComplete == 'n'
+        baselineDisplaySide = input('Baseline Display Side? r/l: ', 's');
+        if baselineDisplaySide == 'r'
+            baselineDisplay = [0 1];
+            szInstruct = load('instructions/size_thresh_instruction_frames_right.mat');
+        elseif baselineDisplaySide == 'l'
+            baselineDisplay = [1 0];
+            szInstruct = load('instructions/size_thresh_instruction_frames_left.mat');
+        end
+    end
+else
+    szComplete = 'y'; spComplete = 'y'; 
 end
 
 % if an experiment already exists
 continueFromCheckpoint = 'n'; skipPractice = 'n';
-if exist([subjectDir '/Experiment.mat'], 'file') && spComplete == 'y'
+if exist([sessionDir '/Experiment.mat'], 'file') && spComplete == 'y'
     pauseBeforeExp = true;
     while pauseBeforeExp
         continueFromCheckpoint = input(['An experiment file already exists for this session. ' ...
@@ -93,7 +104,7 @@ if spComplete == 'n'
 
         % size grating threshold paramters
         nSzTrials = 100; % number of trials for the size staircase
-        initSize = 1.8; % initial grating diameter (DVA)
+        initSize = 1.5; % initial grating diameter (DVA)
         stepSize = .1; % staicase step size (DVA)
         szFixColors = [.35 0  0; .35 0 0; 0 .35 0; .35 0 0]; % fixation cross RGB colors
 
@@ -124,13 +135,13 @@ if spComplete == 'n'
         % run and save the full experiment
         szBlockIndices = fields(SzExp.blocks)';
         SzExp.run([], '');
-        save([subjectDir '/SzThresholdExperiment.mat'], 'SzExp')
-        szResults = SzExp.save_run([subjectDir '/sz_threshold_results.mat'], ...
+        save([sessionDir '/SzThresholdExperiment.mat'], 'SzExp')
+        szResults = SzExp.save_run([sessionDir '/sz_threshold_results.mat'], ...
             szBlockIndices(3:length(szBlockIndices)));
     else
-        SzExp = load([subjectDir '/SzThresholdExperiment.mat']);
+        SzExp = load([sessionDir '/SzThresholdExperiment.mat']);
         SzExp = SzExp.SzExp;
-        szResults = load([subjectDir '/sz_threshold_results.mat']);
+        szResults = load([sessionDir '/sz_threshold_results.mat']);
         szResults = szResults.results;
         SzBlock = SzExp.blocks.main_block;
         baselineDisplay = SzBlock.cuedLocProb;
@@ -140,7 +151,7 @@ if spComplete == 'n'
     while pauseBeforeExp
         % fit a psychometric function to the size experiment and get the threshold diameter
         nSzTrials = SzExp.nTrialTracker.main_block;
-        pInit.a = .75;
+        pInit.a = .80;
         pFitSize = SzBlock.get_size_thresh(pInit, szResults);
         diameter = max(1.5 * pFitSize.t, 1.5*mean(...
             szResults.grating_size(nSzTrials-nSzTrials/5:nSzTrials)));
@@ -154,8 +165,8 @@ if spComplete == 'n'
                 PsychImaging('OpenWindow', screenNumber, backgroundGrey);
                 SzExp.checkpoint.block = {'main_block'};
                 SzExp.run([],'');
-                save([subjectDir '/SzThresholdExperiment.mat'], 'SzExp')
-                szResults = SzExp.save_run([subjectDir '/sz_threshold_results.mat'], ...
+                save([sessionDir '/SzThresholdExperiment.mat'], 'SzExp')
+                szResults = SzExp.save_run([sessionDir '/sz_threshold_results.mat'], ...
                     szBlockIndices(3:length(szBlockIndices)));
             % continue to Part II    
             elseif continueToExp == 'c' 
@@ -193,7 +204,7 @@ if spComplete == 'n'
                         baselineDisplay, true);
     SpPractice.diameter = diameter; % add the threshold diameter
     SpPractice.spatialFrequency = SpPractice.cyclesPerGrating / diameter;
-    SpPractice.set_position_params();
+    SpPractice.set_position_params(diameter);
     
     PracticeWait = Wait;
     PracticeWait.displayText = 'Practice Complete!';
@@ -203,7 +214,7 @@ if spComplete == 'n'
                         baselineDisplay, false);
     SpBlock.diameter = diameter; % add the threshold diameter
     SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
-    SpBlock.set_position_params();
+    SpBlock.set_position_params(diameter);
     
     EndWait = Wait;
     EndWait.displayText = 'You Are Done With Part II!';
@@ -218,15 +229,15 @@ if spComplete == 'n'
     % run the spacing baseline experiment
     spBlockIndices = fields(SzExp.blocks)';
     SpExp.run([], '');
-    save([subjectDir '/SpThresholdExperiment.mat'], 'SpExp')
-    spResults = SpExp.save_run([subjectDir '/sp_threshold_results.mat'], ...
+    save([sessionDir '/SpThresholdExperiment.mat'], 'SpExp')
+    spResults = SpExp.save_run([sessionDir '/sp_threshold_results.mat'], ...
         spBlockIndices(3:length(spBlockIndices)));
     
 else    
     % or load in spacing threshold from previous session 
-    SpExp = load([subjectDir '/SpThresholdExperiment.mat']);
+    SpExp = load([subjectDir '/1/SpThresholdExperiment.mat']);
     SpExp = SpExp.SpExp;
-    spResults = load([subjectDir '/sp_threshold_results.mat']);
+    spResults = load([subjectDir '/1/sp_threshold_results.mat']);
     spResults = spResults.results;
 end
 
@@ -237,10 +248,10 @@ while pauseBeforeExp
     % diameter
     diameter = SpBlock.diameter;
     % initialize spacing fit params
-    pInit.a = .65;
+    pInit.a = .70;
     pInit.t = 3; % init thresh 
     pFitSpacing = SpBlock.get_size_thresh(pInit, spResults);
-    % physical min or ~65% performance
+    % physical min or ~70% performance
     spacing = max(diameter, pFitSpacing.t); 
     spacing = max(spacing, (diameter*sqrt(2))/(sin(360/(SpBlock.nFlankers*2))));
     
@@ -255,8 +266,8 @@ while pauseBeforeExp
             PsychImaging('OpenWindow', screenNumber, backgroundGrey);
             SpExp.checkpoint.block = {'main_block'};
             SpExp.run([],'');
-            save([subjectDir '/SpThresholdExperiment.mat'], 'SpExp')
-            spResults = SpExp.save_run([subjectDir '/sp_threshold_results.mat'], ...
+            save([sessionDir '/SpThresholdExperiment.mat'], 'SpExp')
+            spResults = SpExp.save_run([sessionDir '/sp_threshold_results.mat'], ...
                 spBlockIndices(3:length(spBlockIndices)));
         % continue to Part III
         elseif continueToExp == 'c' 
@@ -282,7 +293,7 @@ if continueFromCheckpoint == 'n'
     nTotalTrials = 960;
     nTrialsPerBlock = 120;
     nBlocks = nTotalTrials/nTrialsPerBlock;
-    nPracticeTrials = 32;
+    nPracticeTrials = 120;
 
     % timing information
     isiTime = 1200/1000; % pre-cue time
@@ -303,26 +314,41 @@ if continueFromCheckpoint == 'n'
     % ensemble info
     ensembleMeanCh = [0 45 90]; %parallel/neutral/orthogonal conditions
     ensembleMeanProb = ones(1,3)/3;
-    sigma = 70;
+    sigma = 45;
+    
+    % session info
+    if sessionNumber == "1"
+        taskType = "target";
+        expInstruct = load('instructions/ensemble_cueing_instruction_frames.mat');
+        expInstruct = expInstruct.instructions;
+        
+    elseif sessionNumber == "2"
+        taskType = "ensemble";
+        expInstruct = load('instructions/ensemble_cueing_instruction_frames.mat');
+        expInstruct = expInstruct.instructions;
+    end
 
-    % instructions
-    expInstruct = load('instructions/ensemble_cueing_instruction_frames.mat');
-    expInstruct = expInstruct.instructions;
+
     InstructBlock = WaitScreen(window, windowRect, '', 70, expInstruct);
-    Exp.append_block('exp_instructions', InstructBlock, 0);
     
     % practice blocks
     pBlock1 = CueEnsembleTrial(window, windowRect, diameter, spacing, ...
                          cuedLocProb, cueValidProb, cueSizeProb, cueSizeCh, ...
-                         ensembleMeanProb, ensembleMeanCh, sigma, isiTime, ...
-                         1, 1, 1);
+                         ensembleMeanProb, ensembleMeanCh, sigma, taskType, ...
+                         isiTime, 1, 1, 1);
     pWait2 = Wait;
     pWait2.displayText = ['Practice Trials' Wait.displayText];
     
     pBlock2 = CueEnsembleTrial(window, windowRect, diameter, spacing, ...
                          cuedLocProb, cueValidProb, cueSizeProb, cueSizeCh, ...
-                         ensembleMeanProb, ensembleMeanCh, sigma, isiTime, ...
-                         cueTime, soaTime, stimTime); 
+                         ensembleMeanProb, ensembleMeanCh, sigma, taskType, ...
+                         isiTime, cueTime, soaTime, stimTime); 
+    
+   % append the practice to the experiment                  
+   Exp.append_block('exp_instructions', InstructBlock, 0);    
+   Exp.append_block("block_p1", pBlock1, 8);
+   Exp.append_block("wait_p2", pWait2, 0);
+   Exp.append_block("block_p2", pBlock2, nPracticeTrials);
 
     % append full experiment blocks
     blockLabels = string(1:nBlocks);
@@ -340,8 +366,8 @@ if continueFromCheckpoint == 'n'
         Exp.append_block(blockLabel, ...
                          CueEnsembleTrial(window, windowRect, diameter, spacing, ...
                          cuedLocProb, cueValidProb, cueSizeProb, cueSizeCh, ...
-                         ensembleMeanProb, ensembleMeanCh, sigma, isiTime, ...
-                         cueTime, soaTime, stimTime), nTrialsPerBlock)
+                         ensembleMeanProb, ensembleMeanCh, sigma, taskType, ...
+                         isiTime, cueTime, soaTime, stimTime), nTrialsPerBlock)
     end
 
     EndWait = Wait;
@@ -350,7 +376,7 @@ if continueFromCheckpoint == 'n'
     
 else
     % load in from checkpoint 
-    Exp = load([subjectDir '/Experiment.mat']);
+    Exp = load([sessionDir '/Experiment.mat']);
     Exp = Exp.self;
     if restartBlock == 'y'
         Exp.checkpoint.trial = 1;
@@ -361,10 +387,9 @@ end
 
 % run the experiment
 blockIndices = fields(Exp.blocks)';
-practicePerformanceThreshold = 0.75;
 
 if skipPractice == 'n'
-    Exp.run(blockIndices(1:4), '')% run instructions/slowed-down example
+    Exp.run(blockIndices(1:4), '')% run practice
     % load back in the checkpoint
     if continueFromCheckpoint == 'y'
         Exp.checkpoint.block = checkpointBlock;
@@ -372,13 +397,13 @@ if skipPractice == 'n'
     end
 end
 % run full experiment
-Exp.run(blockIndices(5:length(blockIndices)), [subjectDir '/Experiment.mat']);     
+Exp.run(blockIndices(5:length(blockIndices)), [sessionDir '/Experiment.mat']);     
 
 sca;
 % save the full experiment 
-save([subjectDir '/Experiment.mat'], 'Exp')
+save([sessionDir '/Experiment.mat'], 'Exp')
 % save the results in a readible format
-results = Exp.save_run([subjectDir '/experiment_results.mat'], blockIndices(7:length(blockIndices)));
+results = Exp.save_run([sessionDir '/experiment_results.mat'], blockIndices(3:length(blockIndices)));
 
 
 

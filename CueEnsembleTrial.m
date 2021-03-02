@@ -6,12 +6,13 @@ classdef CueEnsembleTrial < CueTrial
         ensembleMeanProb % ensemble mean offset proportions
         ensembleMeanChoice % ensemble mean offsets
         ensembleSigma % std dev of the gaussian for choosing flankers 
+        taskType % string - target or ensemble discrimination task
     end
     
     methods
         function self = CueEnsembleTrial(window, windowRect, diameter, ...
                 spacing, cuedLocProb, cueValidProb, cueSizeProb, cueSizeChoice, ...
-                ensembleMeanProb, ensembleMeanChoice, ensembleSigma, ...
+                ensembleMeanProb, ensembleMeanChoice, ensembleSigma, taskType, ...
                 isiTime, cueTime, soaTime, stimTime)
             % -------------------------------------------
             % construct an instance of the classs
@@ -24,6 +25,7 @@ classdef CueEnsembleTrial < CueTrial
             self.cueSizeChoice = cueSizeChoice;
             self.ensembleMeanChoice = ensembleMeanChoice;
             self.ensembleSigma = ensembleSigma;
+            self.taskType = taskType;
         end
         
         function set_exp_design(self, nTrials)
@@ -69,6 +71,7 @@ classdef CueEnsembleTrial < CueTrial
             % get the flanker orientations from the mean and target
             totalNumFlankers = self.nFlankers*self.nFlankerRepeats;
             self.expDesign.F = nan(totalNumFlankers, nTrials);
+            newTargets = nan(1, length(self.expDesign.T));
             for i = 1:nTrials
                 target = self.expDesign.T(i);
                 meanOffset = self.expDesign.ensemble_mean(i);
@@ -77,8 +80,21 @@ classdef CueEnsembleTrial < CueTrial
                 elseif target == 135
                     meanTrial = target - meanOffset;
                 end
-                self.expDesign.F(:,i) = pick_ensemble_flankers(totalNumFlankers, ...
-                    target, meanTrial, self.ensembleSigma, 0, 180);
+                
+                if self.taskType == "target"
+                    self.expDesign.F(:,i) = pick_ensemble_flankers(totalNumFlankers, ...
+                        target, meanTrial, self.ensembleSigma, 0, 180);
+                elseif self.taskType == "ensemble"
+                    self.expDesign.F(:,i) = pick_ensemble_flankers(totalNumFlankers, ...
+                        meanTrial, target, self.ensembleSigma, 0 ,180);
+                    newTargets(i) = meanTrial;
+                end
+            end
+            
+            if self.taskType == "ensemble"
+                self.expDesign.ensemble_mean = self.expDesign.T;
+                self.expDesign.T = newTargets;
+                self.expDesign.target_relation = ensembleMeanOrdered(permIndices);
             end
             
             % initialize result fields
