@@ -10,13 +10,15 @@ addpath(utilsPath)
 addpath(analysisPath)
 
 % initialize the eyelink
+expName = 'test_eyelink';
+edfFile = [expName '.edf'];
 EyelinkInit();
 
 % open the psychtoolbox screen
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey);
+[window, windowRect] = PsychImaging('OpenWindow', screenNumber, backgroundGrey, [0 0 640 480]);
 [xCenter, yCenter] = RectCenter(windowRect); % center coordinates of the screen
 [xRes, yRes] = Screen('WindowSize', window);
-ifi = Screen('GetFlipInterval', window); % inter-frame interval for accurate timing
+ifi = Screen('GetFlipInterval', window); % inter-frame interval for edfaccurate timing
 
 % experiment parameters
 fcv = CenterRectOnPoint([0 0 2 20], xCenter, yCenter); % vertical part of the cross 
@@ -28,6 +30,10 @@ fixBoxColors = [1 0 0; 0 1 0]; % color the fixation differently when fixated
 % get the eyelink pointer 
 el=EyelinkInitDefaults(window);
 el.backgroundcolor = .5; % set the eyelink screen background color
+
+% open the edf file to write to and set the tracker parameters
+Eyelink('OpenFile', edfFile);
+init_edf(expName, xRes, yRes);
 
 % bring up the interactive set-up screen to calibrate, set pupil/corneal reflection
 % thresholds, etc.
@@ -54,7 +60,16 @@ while respToBeMade
         respToBeMade = 0;
     end  
 end
+
+% stop recording, close and save edf file
 Eyelink('StopRecording');
+WaitSecs(0.1);
+Eyelink('CloseFile');
+WaitSecs(0.1);
+Eyelink('ReceiveFile', edfFile, pwd, 1);
+WaitSecs(0.2);
+Eyelink('Shutdown')
+
 sca;
 
 

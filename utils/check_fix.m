@@ -1,4 +1,4 @@
-function fixated = check_fix(el, fixLoc)
+function [fixated] = check_fix(el, fixLoc)
     fixated=0;
     eye_used = Eyelink('EyeAvailable');  % find which eye
 
@@ -17,7 +17,7 @@ function fixated = check_fix(el, fixLoc)
 
     % decide if the subject is fixated
     if pupil>0  % pupil visible
-        if x>fixLoc(RectLeft) && x <fixLoc(RectRight) && ...
+        if x>fixLoc(RectLeft) && x<fixLoc(RectRight) && ...
            y>fixLoc(RectTop) && y<fixLoc(RectBottom) % within the fixation location
             fixated=1;
         end
