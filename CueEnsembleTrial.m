@@ -3,8 +3,8 @@ classdef CueEnsembleTrial < CueTrial
     properties
         cueSizeProb % array - cue size proportions
         cueSizeChoice % array - cue size choices
-        ensembleMeanProb % ensemble mean offset proportions
-        ensembleMeanChoice % ensemble mean offsets
+        targetEnsembleRelationProb % ensemble mean offset proportions
+        targetEnsembleRelationChoice % ensemble mean offsets
         ensembleSigma % std dev of the gaussian for choosing flankers 
         taskType % string - target or ensemble discrimination task
     end
@@ -12,7 +12,7 @@ classdef CueEnsembleTrial < CueTrial
     methods
         function self = CueEnsembleTrial(window, windowRect, diameter, ...
                 spacing, cuedLocProb, cueValidProb, cueSizeProb, cueSizeChoice, ...
-                ensembleMeanProb, ensembleMeanChoice, ensembleSigma, taskType, ...
+                targetEnsembleRelationProb, targetEnsembleRelationChoice, ensembleSigma, taskType, ...
                 isiTime, cueTime, soaTime, stimTime)
             % -------------------------------------------
             % construct an instance of the classs
@@ -21,9 +21,9 @@ classdef CueEnsembleTrial < CueTrial
                 cueValidProb, [1], [spacing], isiTime, cueTime, soaTime, stimTime);
             
             self.cueSizeProb = cueSizeProb;
-            self.ensembleMeanProb = ensembleMeanProb;
+            self.targetEnsembleRelationProb = targetEnsembleRelationProb;
             self.cueSizeChoice = cueSizeChoice;
-            self.ensembleMeanChoice = ensembleMeanChoice;
+            self.targetEnsembleRelationChoice = targetEnsembleRelationChoice;
             self.ensembleSigma = ensembleSigma;
             self.taskType = taskType;
         end
@@ -43,38 +43,38 @@ classdef CueEnsembleTrial < CueTrial
             % target orientations each trial
             self.expDesign.T = random_sample(nTrials, ...
                     self.targetOrientProb, self.targetOrientChoice, false);  
-            % ensemble mean
-            ensembleMeanOrdered = random_sample(nTrials, ...
-                self.ensembleMeanProb, self.ensembleMeanChoice, true);
+            % target-ensemble relationship
+            targetEnsembleRelationOrdered = random_sample(nTrials, ...
+                self.targetEnsembleRelationProb, self.targetEnsembleRelationChoice, true);
             
             % get cue sizes and validity dependent on ensemble mean
-            nTrialsPerEnsemble = round(nTrials/length(self.ensembleMeanChoice));            
+            nTrialsPerTargetEnsembleRelation = round(nTrials/length(self.targetEnsembleRelationChoice));            
             cueSizeOrdered = []; 
-            for i = 1:length(self.ensembleMeanChoice)
-                cueSizePerEnsembleMean = random_sample(nTrialsPerEnsemble, ...
+            for i = 1:length(self.targetEnsembleRelationChoice)
+                cueSizePerTargetEnsembleRelation = random_sample(nTrialsPerTargetEnsembleRelation, ...
                     self.cueSizeProb, self.cueSizeChoice, true);
-                cueSizeOrdered = [cueSizeOrdered cueSizePerEnsembleMean];
+                cueSizeOrdered = [cueSizeOrdered cueSizePerTargetEnsembleRelation];
             end
-            nTrialsPerCueSize = round(nTrialsPerEnsemble/length(self.cueSizeChoice));
+            nTrialsPerCueSize = round(nTrialsPerTargetEnsembleRelation/length(self.cueSizeChoice));
             validOrdered = [];
-            for i = 1:(length(self.ensembleMeanChoice) * length(self.cueSizeChoice))
+            for i = 1:(length(self.targetEnsembleRelationChoice) * length(self.cueSizeChoice))
                 validPerCueSize = random_sample(nTrialsPerCueSize, ...
                     [self.cueValidProb, 1-self.cueValidProb], [1, 0], true);  
                 validOrdered = [validOrdered validPerCueSize];
             end
             
-            permIndices = randperm(length(ensembleMeanOrdered));
-            self.expDesign.ensemble_mean = ensembleMeanOrdered(permIndices);
+            permIndices = randperm(length(targetEnsembleRelationOrdered));
+            self.expDesign.target_ensemble_relation = targetEnsembleRelationOrdered(permIndices);
             self.expDesign.cue_size = cueSizeOrdered(permIndices);
             self.expDesign.valid = validOrdered(permIndices); 
             
             % get the flanker orientations from the mean and target
             totalNumFlankers = self.nFlankers*self.nFlankerRepeats;
             self.expDesign.F = nan(totalNumFlankers, nTrials);
-            newTargets = nan(1, length(self.expDesign.T));
+            ensembleMean = nan(1, length(self.expDesign.T));
             for i = 1:nTrials
                 target = self.expDesign.T(i);
-                meanOffset = self.expDesign.ensemble_mean(i);
+                meanOffset = self.expDesign.target_ensemble_relation(i);
                 if target == 45
                     meanTrial = target + meanOffset;
                 elseif target == 135
@@ -87,14 +87,15 @@ classdef CueEnsembleTrial < CueTrial
                 elseif self.taskType == "ensemble"
                     self.expDesign.F(:,i) = pick_ensemble_flankers(totalNumFlankers, ...
                         meanTrial, target, self.ensembleSigma, 0 ,180);
-                    newTargets(i) = meanTrial;
                 end
+                ensembleMean(i) = meanTrial;
             end
             
-            if self.taskType == "ensemble"
+            if self.taskType == "target"
+                self.expDesign.ensemble_mean = ensembleMean;
+            elseif self.taskType == "ensemble"
                 self.expDesign.ensemble_mean = self.expDesign.T;
-                self.expDesign.T = newTargets;
-                self.expDesign.target_relation = ensembleMeanOrdered(permIndices);
+                self.expDesign.T = ensembleMean;
             end
             
             % initialize result fields
@@ -108,11 +109,15 @@ classdef CueEnsembleTrial < CueTrial
             % dumps the block specific results into the results of the full
             % experiment
             % -------------------------------------------------------------
-            self.expDesign.correct = self.expDesign.response == self.expDesign.T;
+            if self.taskType == "target"
+                self.expDesign.correct = self.expDesign.response == self.expDesign.T;
+            elseif self.taskType == "ensemble"
+                self.expDesign.correct = self.expDesign.response == self.expDesign.ensemble_mean;
+            end
             % dump results for block into the rest of the blocks
             keys = {'response', 'RT', 'pre_fix_check', 'post_fix_check', ...
                     'T', 'valid', 'ensemble_mean', 'cue_size', ...
-                    'correct'};
+                    'target_ensemble_relation', 'correct'};
         end
     end
 end
