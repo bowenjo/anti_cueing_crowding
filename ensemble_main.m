@@ -18,7 +18,7 @@ addpath(analysisPath)
 
 % Ask for subject ID
 subjectID = input('Subject ID: ', 's');
-subjectDir = ['test_results/' subjectID];
+subjectDir = ['results/' subjectID];
 if ~exist(subjectDir, 'dir')
     mkdir(subjectDir)
 end
@@ -81,19 +81,15 @@ Wait = WaitScreen(window, windowRect, waitMessage, 70, []);
 
 % all experiment parameters
 stimTime = 133/1000; % stimulus presentation time
+nReversals = 6; % number of reversals to average over
 
 % ========================================
 % Baseline: Grating Size and Spacing Range
 % ========================================
-% psychometric fit initialization
-pInit.t = 1.2; % init threshold grating size
-pInit.b = 1; % estimated slope
-pInit.g = 0.50; % chance percent correct
-pInit.s = 1; % asymptote
-
 if spComplete == 'n'
     nUp = 1; % number of wrong trials in a row to move up 
-    nDown = 3; % number of correct trials in a row to move down
+    nDownSz = 3; % number of correct trials in a row to move down for size
+    nDownSp = 2; % number of correct trials in a row to move down for spacing
     nPracticeStop = 10; % number of correct trials in a row to pass the practice 
     
     if szComplete == 'n'
@@ -120,7 +116,7 @@ if spComplete == 'n'
         PracticeWait.displayText = 'Practice Complete!';
 
         SzBlock = GratingThreshTrial(window, windowRect, 'grating_size', initSize, ...
-                            stepSize, nUp, nDown, szFixColors, stimTime, ...
+                            stepSize, nUp, nDownSz, szFixColors, stimTime, ...
                             baselineDisplay, false);                    
         EndWait = Wait;
         EndWait.displayText = 'You Are Done With Part I!';
@@ -149,13 +145,10 @@ if spComplete == 'n'
     
     pauseBeforeExp = true;
     while pauseBeforeExp
-        % fit a psychometric function to the size experiment and get the threshold diameter
+        % get the threshold from the staircase
         nSzTrials = SzExp.nTrialTracker.main_block;
-        pInit.a = .80;
-        pFitSize = SzBlock.get_size_thresh(pInit, szResults);
-        diameter = max(1.5 * pFitSize.t, 1.5*mean(...
-            szResults.grating_size(nSzTrials-nSzTrials/5:nSzTrials)));
-        % check to make sure the psychometric function fits the data 
+        threshSize = get_reversal_thresh(szResults.grating_size, nReversals);
+        diameter = 1.5 * threshSize;
         if szComplete == 'n'
             sca;
             fprintf('Size: %4.2f', diameter);
@@ -210,7 +203,7 @@ if spComplete == 'n'
     PracticeWait.displayText = 'Practice Complete!';
     
     SpBlock = GratingThreshTrial(window, windowRect, 'spacing', initSpacing, ...
-                        stepSpacing, nUp, nDown, spFixColors, stimTime, ...
+                        stepSpacing, nUp, nDownSp, spFixColors, stimTime, ...
                         baselineDisplay, false);
     SpBlock.diameter = diameter; % add the threshold diameter
     SpBlock.spatialFrequency = SpBlock.cyclesPerGrating / diameter;
@@ -243,17 +236,10 @@ end
 
 pauseBeforeExp = true;
 while pauseBeforeExp
-    % fit a psychometric function to spacing range  experiment 
+    % find threshold value from staircase 
     SpBlock = SpExp.blocks.main_block;
-    % diameter
     diameter = SpBlock.diameter;
-    % initialize spacing fit params
-    pInit.a = .70;
-    pInit.t = 3; % init thresh 
-    pFitSpacing = SpBlock.get_size_thresh(pInit, spResults);
-    % physical min or ~70% performance
-    spacing = max(diameter, pFitSpacing.t); 
-    spacing = max(spacing, (diameter*sqrt(2))/(sin(360/(SpBlock.nFlankers*2))));
+    spacing = get_reversal_thresh(spResults.spacing, nReversals);
     
     % verify the range of spacings
     if spComplete == 'n'
@@ -293,7 +279,7 @@ if continueFromCheckpoint == 'n'
     nTotalTrials = 960;
     nTrialsPerBlock = 120;
     nBlocks = nTotalTrials/nTrialsPerBlock;
-    nPracticeTrials = 120;
+    nPracticeTrials = 8;
 
     % timing information
     isiTime = 1200/1000; % pre-cue time
@@ -319,12 +305,13 @@ if continueFromCheckpoint == 'n'
     % session info
     if sessionNumber == "1"
         taskType = "target";
-        expInstruct = load('instructions/ensemble_cueing_instruction_frames.mat');
+        expInstruct = load('instructions/ensemble_cueing_instruction_frames_session1.mat');
         expInstruct = expInstruct.instructions;
         
     elseif sessionNumber == "2"
+        % reverses the target/ ensemble mean relationships
         taskType = "ensemble";
-        expInstruct = load('instructions/ensemble_cueing_instruction_frames.mat');
+        expInstruct = load('instructions/ensemble_cueing_instruction_frames_session2.mat');
         expInstruct = expInstruct.instructions;
     end
 
@@ -344,11 +331,14 @@ if continueFromCheckpoint == 'n'
                          ensembleMeanProb, ensembleMeanCh, sigma, taskType, ...
                          isiTime, cueTime, soaTime, stimTime); 
     
-   % append the practice to the experiment                  
-   Exp.append_block('exp_instructions', InstructBlock, 0);    
-   Exp.append_block("block_p1", pBlock1, 8);
-   Exp.append_block("wait_p2", pWait2, 0);
-   Exp.append_block("block_p2", pBlock2, nPracticeTrials);
+    EndPractice = Wait;
+
+    % append the practice to the experiment                  
+    Exp.append_block('exp_instructions', InstructBlock, 0);    
+    Exp.append_block("block_p1", pBlock1, 8);
+    Exp.append_block("wait_p2", pWait2, 0);
+    Exp.append_block("block_p2", pBlock2, nPracticeTrials);
+    Exp.append_block("end_practice", EndPractice, 0);
 
     % append full experiment blocks
     blockLabels = string(1:nBlocks);
@@ -377,7 +367,7 @@ if continueFromCheckpoint == 'n'
 else
     % load in from checkpoint 
     Exp = load([sessionDir '/Experiment.mat']);
-    Exp = Exp.self;
+    Exp = Exp.Exp;
     if restartBlock == 'y'
         Exp.checkpoint.trial = 1;
     end
@@ -389,7 +379,13 @@ end
 blockIndices = fields(Exp.blocks)';
 
 if skipPractice == 'n'
-    Exp.run(blockIndices(1:4), '')% run practice
+    % run practice
+    Exp.run(blockIndices(1:4), [sessionDir '/Experiment.mat'])
+    % print the practice trial accuracy
+    practice_results = Exp.save_run('', blockIndices(4));
+    Exp.blocks.end_practice.displayText = sprintf('Practice Complete \n Accuracy = %4.2f', ...
+        mean(practice_results.correct));
+    Exp.run(blockIndices(5), [sessionDir '/Experiment.mat']);
     % load back in the checkpoint
     if continueFromCheckpoint == 'y'
         Exp.checkpoint.block = checkpointBlock;
@@ -397,15 +393,13 @@ if skipPractice == 'n'
     end
 end
 % run full experiment
-Exp.run(blockIndices(5:length(blockIndices)), [sessionDir '/Experiment.mat']);     
+Exp.run(blockIndices(6:length(blockIndices)), [sessionDir '/Experiment.mat']);     
 
 sca;
 % save the full experiment 
 save([sessionDir '/Experiment.mat'], 'Exp')
 % save the results in a readible format
-results = Exp.save_run([sessionDir '/experiment_results.mat'], blockIndices(3:length(blockIndices)));
-
-
-
+results = Exp.save_run([sessionDir '/experiment_results.mat'], ...
+    blockIndices(3:length(blockIndices)));
 
     
