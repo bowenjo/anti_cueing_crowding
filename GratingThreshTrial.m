@@ -92,7 +92,7 @@ classdef GratingThreshTrial < CueTrial
                     self.expDesign.spacing(idx) = max(self.diameter, ...
                         self.expDesign.spacing(idx));
                     % ensure targets don't overlap with eachother
-                    self.expDesign.spacing(idx) = max( ((self.diameter*sqrt(2))/(sin(360/(self.nFlankers*2)))), ...
+                    self.expDesign.spacing(idx) = max( (self.diameter*sqrt(2))/(2*sin(pi/self.nFlankers)), ...
                         self.expDesign.spacing(idx) );
                 end
             end
@@ -121,17 +121,18 @@ classdef GratingThreshTrial < CueTrial
             postFixationChecks = zeros(1, self.stimFrames);
             self.check_eyelink(idx, nTrials)
             % Fixation Interval
+            cueOffset = self.expDesign.cue_offset(:,idx);
             vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(self.fixationColors(1, :));
-                self.cue(0, self.diameter)
+                self.cue(0, self.diameter, cueOffset)
                 preFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
                 self.draw_fixation(self.fixationColors(2, :))
-                self.cue(0, self.diameter)
+                self.cue(0, self.diameter, cueOffset)
                 self.place_stimuli(stimuli, dests);
                 postFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
@@ -139,12 +140,12 @@ classdef GratingThreshTrial < CueTrial
             
             % Response interval
             self.draw_fixation(self.fixationColors(3, :))
-            self.cue(0, self.diameter)
+            self.cue(0, self.diameter, cueOffset)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             
             self.draw_fixation(self.fixationColors(4, :))
-            self.cue(0, self.diameter)
+            self.cue(0, self.diameter, cueOffset)
             Screen('Flip', self.window);
 
             % append the response data

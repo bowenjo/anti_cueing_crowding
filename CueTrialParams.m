@@ -66,7 +66,7 @@ classdef CueTrialParams < handle
             % cue information
             self.cueType = "texture";
             self.cueFunction = @make_circle;
-            self.cueLum = (3/4)* WhiteIndex(self.screenNumber);
+            self.cueLum = .5; %(3/4)* WhiteIndex(self.screenNumber);
             self.nonCueLum = (1/2)*WhiteIndex(self.screenNumber); %(1/4)*WhiteIndex(self.screenNumber);
             self.cueWidth = 3;
             self.nonCueWidth = 1;
@@ -88,7 +88,7 @@ classdef CueTrialParams < handle
             end
             self.targetOrientProb = [.5 .5];
             
-            self.nFlankers = 9;
+            self.nFlankers = 4;
             self.nFlankerRepeats = 1;
             self.flankerRepeatOffset = 1;
             self.flankerAxis = pi/2;
@@ -109,13 +109,13 @@ classdef CueTrialParams < handle
                             self.xCenter+fixRadius, self.yCenter+fixRadius]; 
         end
         
-        function set_position_params(self, size)
+        function set_position_params(self, size, cueOffset)
             % -------------------------------------------------------
             % (re)sets the position parameters for the cue locations
             % for the current size
             % -------------------------------------------------------
-            % Get the vertical cue lines
-            xOffset = 14; % target location in degrees
+            % Get the positions and offsets
+            xOffset = 10; % target location in degrees
             xOffsetPix = angle2pix(self.subjectDistance, self.physicalWidthScreen, ...
                 self.xRes, xOffset);
             
@@ -128,6 +128,12 @@ classdef CueTrialParams < handle
             sizePix = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, size);  
             
+            % if the cue is offset from the center of the stimuli
+            cuePixX = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, cueOffset(1));
+            cuePixY = angle2pix(self.subjectDistance, ...
+                self.physicalWidthScreen, self.xRes, cueOffset(2));
+            
             self.cueRects = [];
             for i = 1:self.nLocs
                 if self.cueType == "vline"
@@ -138,7 +144,7 @@ classdef CueTrialParams < handle
                     self.cueRects = [self.cueRects rects];
                 else
                     rects = CenterRectOnPoint([0 0 sizePix sizePix], ...
-                        self.xPos(i), self.yPos(i));
+                        self.xPos(i)-cuePixX, self.yPos(i)-cuePixY);
                     self.cueRects = [self.cueRects rects'];
                 end
             end   

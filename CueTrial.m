@@ -40,7 +40,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             % grating size
             self.diameter = diameter;
             self.spatialFrequency = self.cyclesPerGrating/self.diameter;
-            self.set_position_params(self.diameter);
+            self.set_position_params(self.diameter, [0,0]);
             
             % data randomization information
             self.cuedLocProb = cuedLocProb;
@@ -76,6 +76,9 @@ classdef CueTrial < TrialModule & CueTrialParams
             
             % cue size for each trial
             self.expDesign.cue_size = repmat(self.diameter, 1, nTrials);
+            
+            % target offsets for each trial
+            self.expDesign.cue_offset = zeros(2, nTrials);
             
             % orientations
             % target orientation
@@ -126,12 +129,12 @@ classdef CueTrial < TrialModule & CueTrialParams
             end
         end
         
-        function [] = cue(self, cuedLoc, cueDiameter)
+        function [] = cue(self, cuedLoc, cueDiameter, cueOffset)
             % ---------------------------------------------------------
             % cues a region of the screen
             % ---------------------------------------------------------
             % reset the position params for trial diameter
-            self.set_position_params(cueDiameter);
+            self.set_position_params(cueDiameter, cueOffset);
             
             % nuetral cue (cue fixation)
             if isinf(cueDiameter) && cuedLoc ~=0
@@ -197,18 +200,18 @@ classdef CueTrial < TrialModule & CueTrialParams
             dest = [x1 y1 x2 y2];
         end
         
-        function [offsets] = get_offsets(self, spacing)
+        function [offsets] = get_offsets(self, spacing, idx)
             % ----------------------------------------------------------
             % Gets the flanker offsets for the given spacing
             % ----------------------------------------------------------
             diameterPix = angle2pix(self.subjectDistance, ...
                 self.physicalWidthScreen, self.xRes, self.diameter);
             % initialize offset array (x and y-coord)X(all flankers)
-            offsets = zeros(2,(self.nFlankers*self.nFlankerRepeats));
+            offsets = zeros(2,(self.nFlankers*self.nFlankerRepeats)+1);
             % get the angle to rotate 
             rotationAngle = 2*pi/(self.nFlankers);
             % loop over the flankers to get offsets
-            index = 1;
+            index = 2;
             for nF=1:self.nFlankers
                 for nR=1:self.nFlankerRepeats
                     xOffset = (spacing + (nR-1)*self.flankerRepeatOffset*diameterPix) ...
@@ -251,16 +254,13 @@ classdef CueTrial < TrialModule & CueTrialParams
             
             % get the destinations for the trial
             dests = zeros(totalNumFlankers+1, 4);
-            
-            % set target destination
-            dests(1,:) = self.get_destination(rectIdx, [0,0]); 
-            
-            % set flanker destinations
-            flankerOffsets = self.get_offsets(sTrial);
-            flankerIdx = 2;
-            for offset=flankerOffsets
-                dests(flankerIdx,:) =  self.get_destination(rectIdx, offset);
-                flankerIdx = flankerIdx+1;
+          
+            % set target&flanker destinations
+            offsets = self.get_offsets(sTrial, idx);
+            index = 1;
+            for offset=offsets
+                dests(index,:) =  self.get_destination(rectIdx, offset);
+                index = index+1;
             end
         end
             
@@ -281,6 +281,7 @@ classdef CueTrial < TrialModule & CueTrialParams
             [cueIndex, postCueIndex] = self.get_cue(idx);
             [stimuli, dests] = self.make_stimuli(idx, postCueIndex);
             cueSize = self.expDesign.cue_size(idx);
+            cueOffset = self.expDesign.cue_offset(:,idx);
             preCueFixationChecks = zeros(1,self.isiFrames);
             postCueFixationChecks = zeros(1, self.stimFrames);
             % Eyelink stuff
@@ -289,38 +290,38 @@ classdef CueTrial < TrialModule & CueTrialParams
             vbl = Screen('Flip', self.window);
             for i = 1:self.isiFrames
                 self.draw_fixation(.25);
-                self.cue(0, cueSize)
+                self.cue(0, cueSize, cueOffset)
                 preCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Cue Interval
             for i = 1:self.cueFrames
                 self.draw_fixation(.25);
-                self.cue(cueIndex, cueSize);
+                self.cue(cueIndex, cueSize, cueOffset);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Onset Asynchrony Interval
             for i = 1:self.soaFrames
                 self.draw_fixation(.25);
-                self.cue(0, cueSize)
+                self.cue(0, cueSize, cueOffset)
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Stimulus Display Interval
             for i = 1:self.stimFrames
                 self.draw_fixation(.25)
-                self.cue(0, cueSize)
+                self.cue(0, cueSize, cueOffset)
                 self.place_stimuli(stimuli, dests);
                 postCueFixationChecks(i) = check_fix(self.el, self.fixLoc);
                 vbl = Screen('Flip', self.window, vbl + self.ifi/2);
             end
             % Response interval
             self.draw_fixation(.25)
-            self.cue(0, cueSize)
+            self.cue(0, cueSize, cueOffset)
             Screen('Flip', self.window, vbl+self.ifi/2);
             [rsp, rt] = self.get_key_response();
             
             self.draw_fixation(0)
-            self.cue(0, cueSize)
+            self.cue(0, cueSize, cueOffset)
             Screen('Flip', self.window);
 
             % append the response data

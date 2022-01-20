@@ -40,6 +40,9 @@ classdef CueEnsembleTrial < CueTrial
             % target-flanker spacing each trial 
             self.expDesign.spacing = repmat(self.spacingChoice, 1, nTrials);
             
+            % cue offsets each trial
+            self.expDesign.cue_offset = zeros(2,nTrials);
+            
             % target orientations each trial
             self.expDesign.T = random_sample(nTrials, ...
                     self.targetOrientProb, self.targetOrientChoice, false);  
