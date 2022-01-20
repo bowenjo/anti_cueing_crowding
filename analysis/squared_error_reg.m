@@ -8,7 +8,7 @@ function errorTotal = squared_error_reg(fitParams, results, fn)
         %reuslts.y - observed y values
         %results.w - weights (n_x / n_total)
     yPred = fn(fitParams, results.x);
-    error = sqrt(sum(results.w .* (yPred - results.y).^2));
+    error = sum(results.w .* (yPred - results.y).^2);
     reg = results.alone(2) .* (fitParams.s - results.alone(1)).^2;
     errorTotal = error + reg;
 end
