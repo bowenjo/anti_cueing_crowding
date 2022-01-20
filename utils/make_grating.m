@@ -3,7 +3,6 @@ function [gratings] = make_grating(window, orientations, diameter, ...
                                    subjectDistance, physicalWidth, resolution)
                                
     %Makes oriented grating for crowding experiments
-    %   Detailed explanation goes here
 
     % Display Parameters
     pixelsPerDegree = angle2pix(subjectDistance, physicalWidth, resolution, 1);
@@ -14,11 +13,11 @@ function [gratings] = make_grating(window, orientations, diameter, ...
 
     % ---------- Color Setup ----------
     % Retrieves color codes for black and white and gray.
-    black = 0;%BlackIndex(window);  % Retrieves the CLUT color code for black.
-    white = 1;%WhiteIndex(window);  % Retrieves the CLUT color code for white.
-    gray = (black + white) / 2;  % Computes the CLUT color code for gray.
+    black = 0;
+    white = 1;
+    gray = (black + white) / 2;  
 
-    widthOfGrid = diameterPixels;  % the next lines make sure that it is a whole, even number so matrix indices don’t choke.
+    widthOfGrid = diameterPixels;  
     widthOfGrid = round (widthOfGrid);
     if mod (widthOfGrid, 2) ~= 0
        widthOfGrid = widthOfGrid - 1 ;
@@ -28,14 +27,20 @@ function [gratings] = make_grating(window, orientations, diameter, ...
 
     [x, y] = meshgrid(widthArray, widthArray);
     
-    % Now we create a circle mask
+    % Create a circle mask
     circularMaskMatrix = (x.^2 + y.^2) < (diameterPixels/2)^2;
     absoluteDifferenceBetweenWhiteAndGray = abs(white - gray);
     
     G_mask = fspecial('gaussian', widthOfGrid+1, diameterPixels/6);
     G_mask_rescaled = 1 - (max(max(G_mask)) - G_mask) / (max(max(G_mask)) - min(min(G_mask)));
+    
     % Generate display gratings from orientation
-    gratings = zeros(1, length(orientations));
+    if ~isnan(window)
+        gratings = zeros(1, length(orientations));
+    else
+        gratings = zeros([size(x), length(orientations)]);
+    end
+    
     for i = 1:length(orientations)
         if ~isHash || i == 1
             imageMatrix = make_grating_texture(orientations(i));
@@ -44,7 +49,12 @@ function [gratings] = make_grating(window, orientations, diameter, ...
             imageMatrix2 = make_grating_texture(orientations(i)+90);
             imageMatrix = (imageMatrix1 + imageMatrix2)/2;
         end
-        gratings(i) = Screen('MakeTexture', window, imageMatrix); 
+        
+        if ~isnan(window)
+            gratings(i) = Screen('MakeTexture', window, imageMatrix);
+        else
+            gratings(:,:,i) = imageMatrix;
+        end 
     end
     
     
