@@ -110,7 +110,7 @@ classdef GratingThreshTrial < CueTrial
             [~, placeIdx] = self.get_cue(idx);
             if self.threshType == "grating_size"
                 [stimuli, dests] = self.make_grating_stimuli(idx, placeIdx);
-                self.set_position_params(self.diameter) % resets the vline params to fit new size
+                self.set_position_params(self.diameter, [0,0]) % resets the vline params to fit new size
             elseif self.threshType == "spacing"
                 [stimuli, dests] = self.make_stimuli(idx, placeIdx);
             elseif self.threshType == "ensemble_sigma"
