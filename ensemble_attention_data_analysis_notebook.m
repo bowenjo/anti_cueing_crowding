@@ -6,10 +6,14 @@ addpath(analysisPath)
 
 
 %% Parameters
-subKeys = {'sub001', 'sub002', 'sub003', 'sub004', 'sub005','sub006', 'sub007', ...
-    'sub008', 'sub009', 'sub010', 'sub012', 'sub013', 'sub014', 'sub015', 'sub017', ...
-    'sub018', 'sub020', 'sub021', 'sub022'};
-% subKeys= {'sub001', 'sub002', 'sub003', 'sub006'};
+% ensemble results
+% subKeys = {'sub001', 'sub002', 'sub003', 'sub004', 'sub005','sub006', 'sub007', ...
+%     'sub008', 'sub009', 'sub010', 'sub012', 'sub013', 'sub014', 'sub015', 'sub017', ...
+%     'sub018', 'sub020', 'sub021', 'sub022'};
+% uniform results
+subKeys = {'sub001', 'sub002', 'sub003','sub006', 'sub007', ...
+    'sub008', 'sub009', 'sub010', 'sub011', 'sub012', 'sub014', 'sub015', ...
+    'sub016','sub017', 'sub018', 'sub019', 'sub020','sub021','sub022','sub023'};
 session = '/1';
 blocks = {'block_1','block_2','block_3','block_4', ...
     'block_5','block_6','block_7','block_8'};
@@ -34,7 +38,8 @@ for c = choices
     subNumber = 1;
     
     for key = subKeys
-        subDir = ['ensemble_results/' char(key) session];
+%         subDir = ['ensemble_results/' char(key) session];
+        subDir = ['uniform_results/' char(key) session]; 
         if exist(subDir, 'dir')
             subResults = load([subDir '/experiment_results.mat']);
             subResults = subResults.results;
@@ -42,7 +47,8 @@ for c = choices
             lowCueSize = min(subResults.cue_size);
             cue_sizes = [cue_sizes; lowCueSize upCueSize]; 
             filters = get_filters(c, upCueSize, lowCueSize);
-            scoreResults = clip_results(subResults,121,1080); 
+            scoreResults = subResults;
+%             scoreResults = clip_results(subResults,121,1080); 
             
             % flanker data
             subExp = load([subDir '/Experiment.mat']);
@@ -72,7 +78,7 @@ for c = choices
             score = analyze_results(scoreResults, 'valid', {'correct'},...
                 {'cue_size', 'target_ensemble_relation'}, filters, {'eq', 'eq'}, @mean);
             
-            results.(string(c)) = [results.(string(c)) ; score.correct];
+            results.(string(c)) = [results.(string(c)) ; 100*score.correct];
         end    
     end
     
@@ -109,13 +115,16 @@ figure('Position', [10 10 900 560]);
 colors = [ .25, .65, .55; .35, .45, .95; .95, .45, .4];
 alpha = .5;
 
-plot_perf_diff(2, 3, results, 1:6, "Prop. correct", [.2,1], ...
-               {'Prop. correct'; 'Valid (V) - Invalid (I)'}, [-.2,.25], colors, alpha)
+plot_perf_diff(2, 3, results, 1:6, "Percent correct", [50,100], ...
+               {'Percent correct'; 'Valid (V) - Invalid (I)'}, [-20,15], colors, alpha)
 
 % anova
 get_anova_tables(results, 'lsd')
 
-saveas(gcf, "figures/ensemble/target_task_perf_diff_vi.png")
+% saveas(gcf, "figures/ensemble/uniform_task_perf_diff_vi.png")
+
+%%
+get_anova_tables_condition(results, 'p', 'lsd')
 
 %% Slope of prop correct binned by ensemble std dev
 nBins=5;
@@ -123,8 +132,8 @@ results_slope = struct;
 data_points = struct;
 % bar plots for slopes
 for c = 1:6
-    [edges_v, prop_correct_v] = bin_by_value(SCORES(c).v, SUB_KEY_INDICES(c).v, ENSEMBLE_STDS(c).v, nBins);
-    [edges_i, prop_correct_i] = bin_by_value(SCORES(c).i, SUB_KEY_INDICES(c).i, ENSEMBLE_STDS(c).i, nBins);
+    [edges_v, prop_correct_v] = bin_by_value(100*SCORES(c).v, SUB_KEY_INDICES(c).v, ENSEMBLE_STDS(c).v, nBins);
+    [edges_i, prop_correct_i] = bin_by_value(100*SCORES(c).i, SUB_KEY_INDICES(c).i, ENSEMBLE_STDS(c).i, nBins);
     slopes = [];
     for sub = 1:length(subKeys)
         p_v = polyfit(edges_v, prop_correct_v(:,sub)', 1);
@@ -147,7 +156,14 @@ subplot(2,5, [1,2,6,7])
 i = 1;
 slopes = [];
 for c = ['p', 'n', 'o']
-    total = (data_points.("s"+c) + data_points.("s"+c)) / 2;
+    % statistical tests on slope
+    total_slope = (results_slope.("s"+c) + results_slope.("b"+c)) / 2;
+    total_slope = (total_slope(:,1) + total_slope(:,2)) / 2;
+    c
+    [~, pval_slope,~,tstat_slope] = ttest(total_slope)
+    
+    % plotting data
+    total = (data_points.("s"+c) + data_points.("b"+c)) / 2;
     total = [(total(:,1) + total(:,3))/2, (total(:,2) + total(:,4))/2];
     p = polyfit(total(:,1)', total(:,2)', 1);
     slopes = [slopes p(1)];
@@ -160,10 +176,10 @@ for c = ['p', 'n', 'o']
     i = i+1;
 end
 xlabel("Standard Deviation (degrees)")
-ylabel("Prop. Correct")
-legend('Congruent', char(compose('slope = %4.2e',slopes(1))), ...
-       'Neutral', char(compose('slope = %4.2e',slopes(2))), ...
-       'Incongruent', char(compose('slope = %4.2e',slopes(3))), 'Location', 'NorthEast')
+ylabel("Percent Correct")
+legend('Congruent', char(compose('slope = %4.2f',slopes(1))), ...
+       'Neutral', char(compose('slope = %4.2f',slopes(2))), ...
+       'Incongruent', char(compose('slope = %4.2f',slopes(3))), 'Location', 'SouthWest')
 ti = title('All Cueing Conditions');
 ti.FontWeight = 'normal';
 ax = gca;
@@ -171,12 +187,79 @@ set(ax, 'LineWidth',1.5)
 % ylim([.2,1])
 
 
-plot_perf_diff(2, 5, results_slope, [3,4,5,8,9,10], {'Mean slope';'(prop. correct/degree)'}, [-.015,.015], ...
-               {'Mean slope'; 'Valid (V) - Invalid (I)'}, [-.015,.015], colors, alpha)
+plot_perf_diff(2, 5, results_slope, [3,4,5,8,9,10], {'Mean slope';'(% correct/degree)'}, [-2.5,1.5], ...
+               {'Mean slope'; 'Valid (V) - Invalid (I)'}, [-2.5,1.5], colors, alpha)
            
 % anova
-get_anova_tables(results_slope, 'tukey-kramer')
-saveas(gcf, "figures/ensemble/target_task_std_slope_vi.png")
+get_anova_tables(results_slope, 'lsd')
+% saveas(gcf, "figures/ensemble/uniform_task_std_slope_vi.png")
+
+%%
+get_anova_tables_condition(results_slope,'o', 'lsd')
+%% correlate sessions
+figure('Position', [10 10 1200 600])
+
+colors = [ .25, .65, .55; .35, .45, .95; .95, .45, .4];
+pInit.m = 1;
+pInit.b = 0;
+titles = ["Congruent", "Neutral", "Incongruent"];
+
+i = 1;
+for c = ["p", "n", "o"]
+    % target task
+    cue_diff_small_x = -diff([session1_results.("s"+c)(:,1)' ; session1_results.("s"+c)(:,2)']);
+    cue_diff_big_x = -diff([session1_results.("b"+c)(:,1)' ; session1_results.("b"+c)(:,2)']);
+    % ensemble task
+    cue_diff_small_y = -diff([session2_results.("s"+c)(:,1)' ; session2_results.("s"+c)(:,2)']);
+    cue_diff_big_y = -diff([session2_results.("b"+c)(:,1)' ; session2_results.("b"+c)(:,2)']);
+    % fit models
+    mdl_small = fitlm(cue_diff_small_x', cue_diff_small_y');
+    mdl_big = fitlm(cue_diff_big_x', cue_diff_big_y');
+        
+    % get correlation coeff
+    [r_small, pVal_small] = corrcoef(cue_diff_small_x, cue_diff_small_y, 'alpha', .05);
+    [r_big, pVal_big] = corrcoef(cue_diff_big_x, cue_diff_big_y, 'alpha', .05);
+    
+    % Small cue
+    subplot(2,3,i)
+    plot_correlation(mdl_small, colors(i,:))
+    if c == "p"
+        th = text([-16], [-13], {'Ensemble Task';'Percent correct (Valid - Invalid)'}, 'FontSize', 11);
+        set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle', 'Rotation', 90)
+    end
+    ylabel("") 
+    xlabel("")
+    
+    dummyh = line(nan, nan, 'Linestyle', 'none', 'Marker', 'none', 'Color', 'none');
+    legend(dummyh, compose('r = %4.3f; p = %4.3f', [r_small(2), pVal_small(2)]), 'Location', 'northeast')
+    legend boxoff
+    ti = title(string(titles(i)));
+    ti.FontWeight = 'normal';
+    
+    if c == 'n'
+        th = text([10], [21], ["Small cue"], 'FontSize', 14);
+        set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle')
+    end
+
+    % Large Cue
+    subplot(2,3,i+3)
+    plot_correlation(mdl_big, colors(i,:))
+    dummyh = line(nan, nan, 'Linestyle', 'none', 'Marker', 'none', 'Color', 'none');
+    legend(dummyh, compose('r = %4.3f; p = %4.3f', [r_big(2), pVal_big(2)]), 'Location', 'northeast')
+    legend boxoff
+    title("")
+
+    if c == "n"
+        th = text([-5], [25], ["Large cue"], 'FontSize', 14);
+        set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle')
+        xlabel({'Percent correct (Valid - Invalid)'; 'Target Task'})
+    else
+        xlabel("")
+    end
+    ylabel("")
+    i = i+1;
+end
+saveas(gcf, "figures/ensemble/corr_small_big.png")
 
 %% All data bar blot
 close all
@@ -212,7 +295,7 @@ hEB = errorbar(X, y,err,'.');  % add the errorbar
 for i=1:length(hEB)            
     hEB(i).Color='k';
 end
-hleg = legend(L1, 'Location', 'northeast');
+hleg = legend(L1, 'Location', 'southwest');
 title(hleg, "Cue Size")
 ylabel("Ensemble Mean Accuracy (Prop. correct)")
 ylim([.45,1])
@@ -278,65 +361,6 @@ ylabel("Target Accuracy (gain)")
 
 saveas(gcf, "figures/ensemble/target_task_neutral_diff.png")
 
-
-
-%% correlate sessions
-% TODO: Do correlation analysis on the "raw" scores and not the differences
-% for the neutral condition for the two sessions
-
-figure('Position', [10 10 2000 500])
-colors = ['b', 'r'];
-pInit.m = 1;
-pInit.b = 0;
-titles = ["Congruent", "Neutral", "Incongruent"];
-
-i = 1;
-for c = ["p", "n", "o"]
-    subplot(1,3,i)
-    valid_data.x = -diff([session1_results.("s"+c)(:,1)' ; session1_results.("b"+c)(:,1)']);
-    invalid_data.x = -diff([session1_results.("s"+c)(:,2)' ; session1_results.("b"+c)(:,2)']);
-
-    valid_data.y = -diff([session2_results.("s"+c)(:,1)' ; session2_results.("b"+c)(:,1)']);
-    invalid_data.y = -diff([session2_results.("s"+c)(:,2)' ; session2_results.("b"+c)(:,2)']);
-    
-    valid_data.w = ones(1, length(valid_data.x)) ./ length(valid_data.x);
-    invalid_data.w = ones(1, length(invalid_data.x)) ./ length(invalid_data.x);
-    
-    pFit_valid = minimize_objective({'m', 'b'}, [], [], @squared_error, ...
-        pInit, valid_data, @poly1);
-    [corr_valid, pVal_valid] = corrcoef(valid_data.x', valid_data.y');
-    
-    pFit_invalid = minimize_objective({'m', 'b'}, [], [], @squared_error, ...
-        pInit, invalid_data, @poly1);
-    [corr_invalid, pVal_invalid] = corrcoef(invalid_data.x', invalid_data.y');
-    
-    
-    hold on
-        % valid
-        x = linspace(min(valid_data.x), max(valid_data.x), 1000);
-        scatter(valid_data.x, valid_data.y, 30, 'Marker', 's', 'MarkerFaceColor', 'blue', ...
-            'MarkerEdgeColor', 'blue')
-        plot(x, poly1(pFit_valid, x), 'Color', 'blue', 'LineWidth', 2)
-
-        % invalid
-        x = linspace(min(invalid_data.x), max(invalid_data.x), 1000);
-        scatter(invalid_data.x, invalid_data.y, 30, 'Marker', 's', 'MarkerFaceColor', 'red', ...
-            'MarkerEdgeColor', 'red')
-        plot(x, poly1(pFit_invalid, x), 'Color', 'red', 'LineWidth', 2)
-        
-        xlabel('Target Task Accuracy (Small - Big)')
-        ylabel('Ensemble Task Accuracy (Small - Big)')
-%         legend('valid trials', 'invalid trials')
-        title(titles(i))
-        
-        legend('Valid Trials:', char(compose('r = %4.3f; (p-val: %4.3f)', [corr_valid(2), pVal_valid(2)])), ...
-               'Invalid Trials', char(compose('r = %4.3f; (p-val: %4.3f)', [corr_invalid(2), pVal_invalid(2)])))
-    hold off
-    i = i+1;
-   
-    
-end
-saveas(gcf, "figures/ensemble/corr_small_big.png")
 
 
 %% Visualize Ensemble:
@@ -503,10 +527,16 @@ function filters = get_filters_less(choice, upCueSize, lowCueSize)
 end
 
 function get_anova_tables(results, comparison_type)
+    % results: struct with fields {sp, bp, sn, bn, so, bo}
+        % results.(field_name) is a n-by-2 array where n is the number of
+        % subjects and the first column is the valid trials, and the
+        % second column is the invalid trials. 
+    % comparison_type (char or string): 'lsd','bonferroni', etc.
+    
     variable_names = {'Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6', 'Y7', 'Y8', 'Y9', 'Y10', 'Y11', 'Y12'};
     cue_size = {'Small'; 'Small'; 'Big'; 'Big';'Small'; 'Small'; 'Big'; 'Big';'Small'; 'Small'; 'Big'; 'Big'};
     validity = {'Valid'; 'Invalid'; 'Valid'; 'Invalid'; 'Valid'; 'Invalid'; 'Valid'; 'Invalid'; 'Valid'; 'Invalid'; 'Valid'; 'Invalid'};
-    ensemble_relation = {'P'; 'P'; 'P'; 'P'; 'N'; 'N'; 'N'; 'N'; 'O'; 'O'; 'O'; 'O'};
+    ensemble_relation = {'P'; 'P'; 'P'; 'P'; 'N'; 'N'; 'N'; 'N'; 'O'; 'O'; 'O'; 'O'}; % parallel, neutral, orthogonal
     data = [results.sp(:,1:2), results.bp(:,1:2), results.sn(:,1:2), results.bn(:,1:2), results.so(:,1:2), results.bo(:,1:2)];
 
     t = array2table(data, 'VariableNames', variable_names);
@@ -521,8 +551,26 @@ function get_anova_tables(results, comparison_type)
 
     rm = fitrm(t,'Y1-Y12~1','WithinDesign',within);
     ranova(rm, 'WithinModel', 'CUE_SIZE*VALIDITY*ENSEMBLE-1')
+    % compare marginals
     multcompare(rm, 'VALIDITY', 'By', 'CUE_SIZE_ENSEMBLE',  'ComparisonType', comparison_type)
 end
+
+function get_anova_tables_condition(results, condition, comparison_type)
+    variable_names = {'Y1', 'Y2', 'Y3', 'Y4'};
+    cue_size = {'Small';'Small';'Big';'Big'};
+    validity = {'Valid'; 'Invalid'; 'Valid'; 'Invalid'};
+    data = [results.("s"+condition)(:,1:2), results.("b"+condition)(:,1:2)];
+    
+    t = array2table(data, 'VariableNames', variable_names);
+    within = table(categorical(cue_size), ...
+                   categorical(validity), ...
+                   'VariableNames', {'CUE_SIZE', 'VALIDITY'});
+
+    rm = fitrm(t,'Y1-Y4~1','WithinDesign',within);
+    ranova(rm, 'WithinModel', 'CUE_SIZE*VALIDITY-1')
+    multcompare(rm, 'VALIDITY', 'By', 'CUE_SIZE',  'ComparisonType', comparison_type)
+end
+    
 
 
 function [EDGES, CORRECT] = bin_by_value(scores, keys, values, nBins)
@@ -640,6 +688,12 @@ function plot_perf_diff(size1, size2, results, axis_idx, perf_label, perf_lim, .
         pValid = ttp < .05;
         th = text(hBar.XData(pValid), m(pValid) + 3*sign(m(pValid)).*sem(pValid), '*', 'FontSize', 14);
         set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle')
+%         if c == 'o'
+%             hold on
+%             plot(hBar.XData, [1.3, 1.3], 'black', 'LineWidth', 2)
+%             th = text([3], [1.4], '*', 'FontSize', 14);
+%             set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle')
+%         end
 
         ax2 = gca;
         ax2.XTick = [1.5 4.5];
@@ -653,6 +707,24 @@ function plot_perf_diff(size1, size2, results, axis_idx, perf_label, perf_lim, .
         end
         i = i+1;
     end
+end
+
+function plot_correlation(mdl, color)
+    pl = plot(mdl);
+    % Line/Color Parameters
+    pl(1).Color = color;
+    pl(1).LineWidth = 1.25;
+    % Regression Line
+    pl(2).Color = color;
+    pl(2).LineWidth = 1.5;
+    % Confidence Intervals
+    pl(3).Color = color;
+    pl(3).LineWidth = 1.25;
+    pl(4).Color = color;
+    pl(4).LineWidth = 1.25;
+    
+    ax = gca;
+    set(ax,'box','off', 'LineWidth', 1.5)
 end
 
 

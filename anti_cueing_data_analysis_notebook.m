@@ -72,7 +72,7 @@ pInit.s = .90; % asymptote
 pInit.a = 0.78;
 
 % experiment conditions
-conditions = {'valid_short', 'invalid_short', 'valid_long', 'invalid_long'};
+conditions = {'valid_short', 'invalid_short', 'valid_long', 'invalid_long'}; % valid means the 80% opposite side 
 % variables to fit
 variables = {'t','b', 's'};
 % constraints on the variables
@@ -88,7 +88,7 @@ pInit.m = -1;
 pInit.b = .8;
 
 % experiment conditions
-conditions = {'valid_short', 'invalid_short', 'valid_long', 'invalid_long'};
+conditions = {'valid_short', 'invalid_short', 'valid_long', 'invalid_long'}; % valid means the 80% opposite side 
 % variables to fit
 variables = {'m','b'};
 %constraints on the variables
@@ -96,7 +96,6 @@ A = [];
 b = [];
 
 FitDataRT = fit_rt(results, subKeys, conditions, pInit, variables, A, b);
-
 
 %% Calculate grouped data
 groupResults = struct;
@@ -166,22 +165,76 @@ for key = subKeys
     % Accuracy
     subplot(1,2,1)
     raw_fit_data_plot(key, conditions, FitData, @weibull, ...
-        'Accuracy (percent correct)', [.5,1], string(key), ...
+        'Accuracy (percent correct)', [.5,1], .78, string(key), ...
         {'Opp. Short', 'Cue Short', 'Opp. Long', 'Cue Long'}, ...
         'southwest', colors)
     % Reaction Time
     subplot(1,2,2)
     raw_fit_data_plot(key, conditions, FitDataRT, @poly1, ...
-        'Response Time (secs)', [], '', ...
+        'Response Time (secs)', [], nan, '', ...
         {'Opp. Short', 'Cue Short', 'Opp. Long', 'Cue Long'}, ...
         'northeast', colors)
-     saveas(gcf, "figures/idv/"+string(key)+".png")
+%      saveas(gcf, "figures/idv/"+string(key)+".png")
 end
+
+%% Average the raw data across subject for each nominal spacing/condition combo
+
+% Accuracy
+pInit = struct;
+pInit.g = 0.50;
+pInit.b = 1.5;
+pInit.s = .90;
+pInit.a = 0.78;
+pInit.t = 3.5;
+variables = {'t','b', 's'};
+A = [0 0 1]; 
+b = [1];
+
+results_raw_acc = get_raw_data(FitData, conditions, subKeys, variables, ...
+                                    A, b, @squared_error_reg, pInit, @weibull);
+
+
+% RT
+pInit = struct;
+pInit.m = -1;
+pInit.b = .8;
+variables = {'m','b'};
+A = [];
+b = [];
+
+results_raw_rt =  get_raw_data(FitDataRT, conditions, subKeys, variables, ...
+                                    A, b, @squared_error, pInit, @poly1);
+                                
+                                
+% plot
+close all
+colors = {'green', 'black', 'blue', 'red'};
+figure('Position', [10 10 1000 400])
+% Accuracy
+subplot(1,2,1)
+raw_fit_data_plot("sub_all", conditions, results_raw_acc, @weibull, ...
+    'Accuracy (percent correct)', [50,100], 78, '', ...
+    {'Opp. Short', 'Cue Short', 'Opp. Long', 'Cue Long'}, ...
+    "none", colors, 100)
+% Reaction Time
+subplot(1,2,2)
+raw_fit_data_plot("sub_all", conditions, results_raw_rt, @poly1, ...
+    'Response Time (msecs)', [], nan, '', ...
+    {'Opp. Short', 'Cue Short', 'Opp. Long', 'Cue Long'}, ...
+    'northeast', colors, 100)
+
+th = text([-1.25], [40], ["Target/flanker spacing"], 'FontSize',11);
+set(th,'visible','on','HorizontalAlignment','center','VerticalAlignment','middle')
+
+% saveas(gcf,'figures/grp/accuracy_rt_raw_data.png')
+ print(gcf,'figures/grp/accuracy_rt_raw_data.eps','-depsc','-r300')
+
+
 
 %%
 % Swarm Plots with mean and SEM error bars
-% 2x1 subplots for RT, CS, Lapse
-% 1) All four conditions 2) Differences
+% 2x2 subplots for RT, CS
+% 1st row: All four conditions. 2nd row: Differences
 close all
 rSquaredMin = 0;
 
@@ -259,7 +312,8 @@ for i = 1:length(result_fields)
 
 end
 
-print(gcf,'figures/grp/cs_rt_error_bar.eps','-depsc','-r300')
+
+% print(gcf,'figures/grp/cs_rt_error_bar.eps','-depsc','-r300')
 
 
 %% Correlate Within Subject Differences 
@@ -629,6 +683,35 @@ function psychData = get_data(scores, count, field)
     psychData.alone = [scores.(field)(8), count.(field)(8)./totalTrials];
 end
 
+function results_raw = get_raw_data(FitData, conditions, subKeys, variables, ...
+                                    A, b, cost_fn, pInit, fn)
+    results_raw = struct;
+    results_raw.sub_all = struct;
+    for condition = conditions
+        results_raw.sub_all.(string(condition)) = struct;
+        data_y = []; data_x = []; alone = [];
+        for key  = subKeys
+            % accuracy
+            data_y = [data_y; FitData.(string(key)).(string(condition)).data.y];
+            data_x = [data_x; FitData.(string(key)).(string(condition)).data.x];
+            alone = [alone; FitData.(string(key)).(string(condition)).data.alone];
+        end
+        results_raw.sub_all.(string(condition)).data = struct;
+        results_raw.sub_all.(string(condition)).data.x = mean(data_x,1);
+        results_raw.sub_all.(string(condition)).data.y = mean(data_y,1);
+        results_raw.sub_all.(string(condition)).data.w = ones(1,7)/8;
+        results_raw.sub_all.(string(condition)).data.alone = mean(alone,1);
+        results_raw.sub_all.(string(condition)).data.alone(2) = 1/8;  
+        results_raw.sub_all.(string(condition)).data.sem = std(data_y,0,1)/sqrt(length(data_y));
+        length(data_y)
+        
+        % fit data
+        pFit = minimize_objective(variables, A, b, cost_fn,...
+            pInit, results_raw.sub_all.(string(condition)).data, fn);
+        results_raw.sub_all.(string(condition)).fit = pFit;
+    end
+end
+
 function pt = get_inflection_pt(pFit)
     % get the steepest part of the curve
     syms w(x)
@@ -710,7 +793,7 @@ function grouped_error_bar_plot(labels, means, sems, xLabel, yLabel, ...
 end
 
 function raw_fit_data_plot(key, conditions, FitData, fn, yLabel, ...
-    yLim, Title, legendLabels, location, colors)
+    yLim, yline_val, Title, legendLabels, location, colors, multiplier)
     hold on
     color_cnt = 1;
     plots = [];
@@ -718,28 +801,37 @@ function raw_fit_data_plot(key, conditions, FitData, fn, yLabel, ...
         Data = FitData.(string(key)).(string(condition));
         x = linspace(0,max(Data.data.x),100);
         % plot linear function
-        y = fn(Data.fit,x);
+        y = fn(Data.fit,x)*multiplier;
         p = plot(x, y, 'DisplayName', string(condition), 'Color',...
-            char(colors(color_cnt)), 'LineWidth', 1.5);
+            char(colors(color_cnt)), 'LineWidth', 1.8);
         plots = [plots p];
         % plot the raw data
-        scatter(Data.data.x, Data.data.y, 30, 'MarkerEdgeColor',...
+        h = errorbar(Data.data.x, Data.data.y*multiplier, Data.data.sem*multiplier, 'MarkerSize', 5, 'MarkerEdgeColor',...
         char(colors(color_cnt)), 'Marker', 's', 'MarkerFaceColor', ...
-        char(colors(color_cnt)), 'MarkerFaceAlpha',.3,'MarkerEdgeAlpha',.3); 
+        char(colors(color_cnt)), 'Linestyle', 'none', 'Color', char(colors(color_cnt))); 
+        
+%         alpha = 0.65;   
+%         set([h.Bar, h.Line], 'ColorType', 'truecoloralpha', 'ColorData', [h.Line.ColorData(1:3); 255*alpha])
+        
         % plot target alone 
-        scatter(max(Data.data.x), Data.data.alone(1), 30, 'MarkerEdgeColor',...
-        char(colors(color_cnt)), 'Marker', '*', 'MarkerFaceColor', ...
-        char(colors(color_cnt)));
+%         scatter(max(Data.data.x), Data.data.alone(1), 70, 'MarkerEdgeColor',...
+%         char(colors(color_cnt)), 'Marker', '^', 'MarkerFaceColor', ...
+%         char(colors(color_cnt)));
         color_cnt = color_cnt + 1;
     end
     xlim([0,max(x)]);
     if ~isempty(yLim)
         ylim(yLim);
     end
-    xlabel('Target-Flanker Spacing (DVA)');
+    if ~isnan(yline_val)
+        yline(yline_val, '--', 'LineWidth', 1.5)
+    end
+%     xlabel('Target/flanker spacing');
     ylabel(yLabel);
     title(Title);
-    legend(plots, legendLabels, 'Location', location)
+    if location ~= "none"
+        legend(plots, legendLabels, 'Location', location)
+    end
     hold off
 end
 
@@ -777,6 +869,7 @@ function [r, diff, means_fields, sems_fields, diff_means_fields, diff_sems_field
         
         stats
         statl
+        d_cohens = diff_means ./ std(diff,0,2)'
         
         % append the data for each field
         means_fields = [means_fields; means];
@@ -800,6 +893,7 @@ function filters = filter_indices(results, filterFields, filterMins, filterOpera
         end    
     end
 end
+
 function r2 = r_squared(y, y_pred)
     res = sum((y - y_pred).^2);
     total = sum((y - mean(y)).^2);
