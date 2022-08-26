@@ -2,7 +2,7 @@
 Code for running an anti-cueing experimental task for testing the effects of endogenous and exogenous attention on visual crowding and ensemble perception. 
 
 ## Building an experiment
-Navigate to the **experiment.m* file to see how different experiments can be created
+Navigate to the **examples.m** file to see how different experiments can be created
 
 ## Running a experiment
 The framework was used to build a number of attention-cueing experiments. 
